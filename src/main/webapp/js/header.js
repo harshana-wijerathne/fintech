@@ -1,5 +1,4 @@
 async function logout() {
-        // window.location.href = "http://localhost:8080/logout";
     await fetch("http://localhost:8080/logout")
 }
 

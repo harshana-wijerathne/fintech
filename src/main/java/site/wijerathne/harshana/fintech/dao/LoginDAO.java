@@ -1,5 +1,6 @@
 package site.wijerathne.harshana.fintech.dao;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.mindrot.jbcrypt.BCrypt;
 import site.wijerathne.harshana.fintech.model.User;
 
@@ -9,10 +10,10 @@ import java.sql.ResultSet;
 
 public class LoginDAO {
     User user = new User();
-    public User getUser(String username, String password) {
+    public User getUser(String username, String password ) {
         try(
                 Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM user WHERE username = ?");
+                PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
         ){
             preparedStatement.setString(1,username);
             ResultSet resultSet = preparedStatement.executeQuery();

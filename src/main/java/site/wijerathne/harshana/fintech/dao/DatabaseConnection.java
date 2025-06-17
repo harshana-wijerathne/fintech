@@ -23,10 +23,10 @@ public class DatabaseConnection {
             prop.load(inputStream);
 
             HikariConfig config = new HikariConfig();
-            config.setDriverClassName(prop.getProperty("db.driver"));
-            config.setJdbcUrl(prop.getProperty("db.url"));
-            config.setUsername(prop.getProperty("db.username"));
-            config.setPassword(prop.getProperty("db.password"));
+            config.setDriverClassName(prop.getProperty("app.datasource.driver"));
+            config.setJdbcUrl(prop.getProperty("app.datasource.url"));
+            config.setUsername(prop.getProperty("app.datasource.username"));
+            config.setPassword(prop.getProperty("app.datasource.password"));
 
             // Connection pool configuration
             config.setMaximumPoolSize(10);

@@ -2,22 +2,18 @@ package site.wijerathne.harshana.fintech.model;
 
 import lombok.*;
 
-import java.sql.Date;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Customer {
+public class SavingAccount {
+    private String accountNumber;
     private String customerId;
-    private String nicPassport;
-    private String fullName;
-    private Date dob;
-    private String address;
-    private String mobile;
-    private String email;
+    private Timestamp openingDate;
+    private BigDecimal balance;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 }

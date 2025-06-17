@@ -1,5 +1,6 @@
 package site.wijerathne.harshana.fintech.controller;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import site.wijerathne.harshana.fintech.service.LoginService;
 
 import javax.servlet.ServletException;
@@ -9,11 +10,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 @WebServlet("/login")
 public class LoginController extends HttpServlet {
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {;
         String username = req.getParameter("username");
         String password = req.getParameter("password");
         boolean validateUser = new LoginService().validateUser(username, password);
@@ -26,6 +28,5 @@ public class LoginController extends HttpServlet {
             resp.sendRedirect("pages/login.jsp");
         }
     }
-
 
 }
