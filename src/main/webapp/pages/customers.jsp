@@ -108,13 +108,13 @@
     </div>
 
     <div id="AddNewCustomerModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 800px">
             <div class="modal-header">
                 <div class="card-title">
                     <i data-lucide="user-plus"></i>
                     Add New Customer
                 </div>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <button class="close-btn" onclick="closeModal()"><i data-lucide="square-x"></i></button>
             </div>
             <div id="accountDetailsContent">
                 <form class="form-grid" id="customerForm">

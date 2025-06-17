@@ -32,6 +32,10 @@ const getAllCustomers = async () => {
                                         <i data-lucide="trash"></i>
                                         Delete
                                     </button>
+                                    <button class="btn btn-primary" onclick="viewAccountDetails('SAV001234569')">
+                                        <i data-lucide="eye"></i>
+                                        View
+                                    </button>
                                 </td>
                             </tr>`;
             }
@@ -114,7 +118,7 @@ function debounce(func, timeout = 300) {
 }
 
 // Search function with debouncing
-const searchUser = debounce(async (event) => {
+window.searchUser = debounce(async (event) => {
     const searchTerm = event.target.value.trim();
 
     if (searchTerm.length === 0) {
@@ -281,5 +285,6 @@ window.viewAddNewCustomerModal = () => {
 
 window.closeModal = ()=> {
     document.getElementById('AddNewCustomerModal').classList.remove('active');
+    getAllCustomers();
 }
 

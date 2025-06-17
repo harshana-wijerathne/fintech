@@ -126,7 +126,7 @@ public class CustomerController extends HttpServlet {
 
     private void handleGetAll(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         int page = 1;
-        int pageSize = 3;
+        int pageSize = 8;
 
         try {
             if (req.getParameter("page") != null) {
@@ -158,7 +158,7 @@ public class CustomerController extends HttpServlet {
         try {
             Customer customer = gson.fromJson(req.getReader(), Customer.class);
 
-            
+
 
             if (customer.getFullName() == null || customer.getFullName().trim().isEmpty() ||
                     customer.getNicPassport() == null || customer.getNicPassport().trim().isEmpty()) {
