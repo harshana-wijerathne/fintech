@@ -10,12 +10,7 @@
 <head>
     <title>login</title>
     <link rel="stylesheet" href="../css/login.css">
-    <script type="module" src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-        });
-    </script>
+    <script type="module" src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 </head>
 <body>
 <div class="app-container">

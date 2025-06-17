@@ -10,7 +10,8 @@
 <head>
     <title>Title</title>
     <link rel="stylesheet" href="css/header.css">
-    <script type="module" src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../js/header.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
@@ -25,19 +26,20 @@
     </div>
     <nav>
         <ul class="nav-menu">
-            <li class="nav-item active" data-page="dashboard">
+            <li class="nav-item" data-page="dashboard" onclick="location.href='dashboard.jsp'">
                 <i data-lucide="layout-dashboard"></i>
                 Dashboard
             </li>
-            <li class="nav-item" data-page="customers">
-                <i data-lucide="users"></i>
-                Customers
+            <li class="nav-item" data-page="customers" onclick="location.href='customers.jsp'">
+                    <i data-lucide="users"></i>
+                    Customers
+
             </li>
-            <li class="nav-item" data-page="accounts">
+            <li class="nav-item" data-page="accounts" onclick="location.href='accounts.jsp'">
                 <i data-lucide="credit-card"></i>
                 Accounts
             </li>
-            <li class="nav-item" data-page="transactions">
+            <li class="nav-item" data-page="transactions" onclick="location.href='transactions.jsp'">
                 <i data-lucide="arrow-left-right"></i>
                 Transactions
             </li>
@@ -45,7 +47,7 @@
     </nav>
     <div class="user-info">
         <span>Welcome, Admin</span>
-        <button class="logout-btn" onclick="logout()">
+        <button  class="logout-btn" onclick="location.href='${pageContext.request.contextPath}/logout'">
             <i data-lucide="log-out"></i>
             Logout
         </button>
