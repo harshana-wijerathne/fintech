@@ -55,8 +55,6 @@ CREATE TABLE audit_logs (
                             ip_address     VARCHAR(45),   -- support for IPv6
                             created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-                            FOREIGN KEY (actor_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-
                             INDEX idx_actor_user_id (actor_user_id),
                             INDEX idx_entity_type (entity_type),
                             INDEX idx_created_at (created_at)

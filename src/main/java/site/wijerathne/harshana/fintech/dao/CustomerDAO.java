@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class CustomerDAO {
     private static final Logger logger = Logger.getLogger(CustomerDAO.class.getName());
 
-    public List<Customer> getAllCustomers(int page, int pageSize) {
+    public static List<Customer> getAllCustomers(int page, int pageSize) {
         if (page < 1 || pageSize < 1) {
             throw new IllegalArgumentException("Page and pageSize must be positive integers");
         }
@@ -104,24 +104,6 @@ public class CustomerDAO {
         return null;
     }
 
-    public boolean deleteCustomer(int customerId) {
-        String sql = "DELETE FROM customer WHERE customer_id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, customerId);
-            int affectedRows = pstmt.executeUpdate();
-
-            return affectedRows > 0; // Returns true if at least one row was deleted
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-
     public List<Customer> findCustomersByNameOrNIC(String searchTerm) throws SQLException {
         List<Customer> customers = new ArrayList<>();
         String sql = "SELECT customer_id, full_name, nic_passport, dob, address, mobile_no, email, created_at " +
@@ -177,44 +159,35 @@ public class CustomerDAO {
         }
     }
 
-    private String sanitizeSearchTerm(String term) {
-        if (term == null) return "";
-        // Remove wildcards to prevent overly broad searches
-        return term.replaceAll("[%_\\\\]", "");
-    }
-
-
     public Customer saveCustomer(Customer customer) throws SQLException {
-        // SQL matches exact table structure with all columns
+
         String sql = "INSERT INTO customers (customer_id, nic_passport, full_name, dob, address, mobile_no, email, created_at, updated_at) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        // Generate values that will be used in the insert
+
         String customerId = UUID.randomUUID().toString();
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            conn.setAutoCommit(false); // Start transaction
+            conn.setAutoCommit(false);
 
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                // Set all parameters according to table structure
                 pstmt.setString(1, customerId);
                 pstmt.setString(2, customer.getNicPassport());
                 pstmt.setString(3, customer.getFullName());
                 pstmt.setDate(4, new java.sql.Date(customer.getDob().getTime()));
                 pstmt.setString(5, customer.getAddress());
-                pstmt.setString(6, customer.getMobile()); // Maps to mobile_no in DB
+                pstmt.setString(6, customer.getMobile());
                 pstmt.setString(7, customer.getEmail());
-                pstmt.setTimestamp(8, now); // created_at
-                pstmt.setTimestamp(9, now); // updated_at
+                pstmt.setTimestamp(8, now);
+                pstmt.setTimestamp(9, now);
 
-                // Execute and check affected rows
+
                 int affectedRows = pstmt.executeUpdate();
                 if (affectedRows == 0) {
                     throw new SQLException("Creating customer failed, no rows affected");
                 }
 
-                // Set generated values back to customer object
                 customer.setCustomerId(customerId);
                 customer.setCreatedAt(now);
                 customer.setUpdatedAt(now);
@@ -233,6 +206,59 @@ public class CustomerDAO {
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Database connection error: {}"+ e.getMessage(), e);
             throw new SQLException("Database connection error", e);
+        }
+    }
+
+    public boolean deleteCustomer(String customerId) throws SQLException {
+        String sql = "DELETE FROM customers WHERE customer_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, customerId);
+            int affectedRows = pstmt.executeUpdate();
+
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting customer with ID: " + customerId, e);
+            throw e;
+        }
+    }
+
+    private String sanitizeSearchTerm(String term) {
+        if (term == null) return "";
+        // Remove wildcards to prevent overly broad searches
+        return term.replaceAll("[%_\\\\]", "");
+    }
+
+
+
+
+    public Customer updateCustomer(Customer customer, Connection conn) throws SQLException {
+        String sql = "UPDATE customers SET nic_passport = ?, full_name = ?, dob = ?, " +
+                "address = ?, mobile_no = ?, email = ?, updated_at = ? " +
+                "WHERE customer_id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+
+            pstmt.setString(1, customer.getNicPassport());
+            pstmt.setString(2, customer.getFullName());
+            pstmt.setDate(3, customer.getDob() != null ? new java.sql.Date(customer.getDob().getTime()) : null);
+            pstmt.setString(4, customer.getAddress());
+            pstmt.setString(5, customer.getMobile());
+            pstmt.setString(6, customer.getEmail());
+            pstmt.setTimestamp(7, now);
+            pstmt.setString(8, customer.getCustomerId());
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Updating customer failed, no rows affected");
+            }
+
+            // Set updated timestamp
+            customer.setUpdatedAt(now);
+            return customer;
         }
     }
 }
