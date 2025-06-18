@@ -23,7 +23,7 @@ const getAllCustomers = async () => {
                                 <td>${customer.nicPassport}</td>
                                 <td>${customer.mobile}</td>
                                 <td>${customer.email}</td>
-                                <td>
+                                <td style="display: flex; justify-content: space-evenly">
                                     <button class="btn btn-warning" onclick="editCustomer(${customer.id})">
                                         <i data-lucide="edit"></i>
                                         Edit
@@ -56,7 +56,8 @@ const getAllCustomers = async () => {
     }
 };
 
-const deleteCustomer = async (id)=>{
+window.deleteCustomer = async (id)=>{
+    alert("delete")
     try{
         const response = await fetch("/admin/customers?id="+id,{method:"delete"});
         if(response.ok){
@@ -169,6 +170,10 @@ function displayResults(customers) {
                     <i data-lucide="trash"></i>
                     Delete
                 </button>
+                <button class="btn btn-primary" onclick="viewAccountDetails('SAV001234569')">
+                      <i data-lucide="eye"></i>
+                       View
+                 </button>
             </td>
         `;
         tableBody.appendChild(row);

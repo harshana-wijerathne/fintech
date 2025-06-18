@@ -44,3 +44,21 @@ CREATE TABLE transactions (
                               balance_after     DECIMAL(15,2)                         NOT NULL,
                               FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number) ON DELETE CASCADE
 );
+
+CREATE TABLE audit_logs (
+                            log_id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+                            actor_user_id  CHAR(36)                         NOT NULL,  -- who did the action
+                            action_type    ENUM('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT') NOT NULL,
+                            entity_type    ENUM('CUSTOMER', 'ACCOUNT', 'TRANSACTION', 'USER')    NOT NULL,
+                            entity_id      CHAR(36),  -- ID of the affected record (nullable for LOGIN/LOGOUT)
+                            description    TEXT,
+                            ip_address     VARCHAR(45),   -- support for IPv6
+                            created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                            FOREIGN KEY (actor_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+
+                            INDEX idx_actor_user_id (actor_user_id),
+                            INDEX idx_entity_type (entity_type),
+                            INDEX idx_created_at (created_at)
+);
+

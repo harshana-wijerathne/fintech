@@ -69,38 +69,6 @@
                     <%--                        </tr>--%>
                     <%--                    </c:forEach>--%>
 
-                    <tr>
-                        <td>Sarah Johnson</td>
-                        <td>198712345678</td>
-                        <td>+94 71 987 6543</td>
-                        <td>sarah.johnson@email.com</td>
-                        <td>
-                            <button class="btn btn-warning" onclick="editCustomer(2)">
-                                <i data-lucide="edit"></i>
-                                Edit
-                            </button>
-                            <button class="btn btn-danger" onclick="deleteCustomer(2)">
-                                <i data-lucide="trash"></i>
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Mike Davis</td>
-                        <td>199012345678</td>
-                        <td>+94 76 555 1234</td>
-                        <td>mike.davis@email.com</td>
-                        <td>
-                            <button class="btn btn-warning" onclick="editCustomer(3)">
-                                <i data-lucide="edit"></i>
-                                Edit
-                            </button>
-                            <button class="btn btn-danger" onclick="deleteCustomer(3)">
-                                <i data-lucide="trash"></i>
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
                     </tbody>
                 </table>
             </div>
