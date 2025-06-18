@@ -7,11 +7,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class LoginDAO {
-    public User getUserByUsername(String username) {
+    public User getUserByUsername(String username,Connection connection) {
         String sql = "SELECT * FROM users WHERE username = ?";
 
         try (
-                Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(sql)
         ) {
             stmt.setString(1, username);

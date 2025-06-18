@@ -1,43 +1,55 @@
 package site.wijerathne.harshana.fintech.listeners;
 
-import org.apache.commons.dbcp2.BasicDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import site.wijerathne.harshana.fintech.controller.CustomerController;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 @WebListener
 public class AppContextListener implements ServletContextListener {
+    private static final Logger logger = Logger.getLogger(CustomerController.class.getName());
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        final AppProperties PROPS = new AppProperties();
-        final BasicDataSource BDS = new BasicDataSource();
+        try(InputStream inputStream = getClass().getClassLoader().getResourceAsStream("db.properties")){
+            Properties PROPS = new Properties();
+            PROPS.load(inputStream);
+            HikariConfig config = new HikariConfig();
+            config.setDriverClassName(PROPS.getProperty("app.datasource.driver"));
+            config.setUsername(PROPS.getProperty("app.datasource.user"));
+            config.setPassword(PROPS.getProperty("app.datasource.password"));
+            config.setJdbcUrl(PROPS.getProperty("app.datasource.url"));
 
-        BDS.setDriverClassName(PROPS.getProperty("app.datasource.driver"));
-        BDS.setUsername(PROPS.getProperty("app.datasource.user"));
-        BDS.setPassword(PROPS.getProperty("app.datasource.password"));
-        BDS.setUrl(PROPS.getProperty("app.datasource.url"));
-        BDS.setInitialSize(Integer.parseInt(PROPS.getProperty("app.datasource.initial-size", String.valueOf(5))));
-        BDS.setMaxTotal(Integer.parseInt(PROPS.getProperty("app.datasource.max-total", String.valueOf(15))));
-        BDS.setMaxIdle(Integer.parseInt(PROPS.getProperty("app.datasource.max-idle", String.valueOf(5))));
-        BDS.setMinIdle(Integer.parseInt(PROPS.getProperty("app.datasource.min-idle", String.valueOf(2))));
+            config.setMaximumPoolSize(10);
+            config.setMinimumIdle(5);
+            config.setIdleTimeout(600000);
+            config.setConnectionTimeout(30000);
+            config.setMaxLifetime(1800000);
+            config.setLeakDetectionThreshold(30000);
+            config.setConnectionTestQuery("SELECT 1");
+            HikariDataSource dataSource = new HikariDataSource(config);
 
-        sce.getServletContext().setAttribute("DATA_SOURCE", BDS);
+            sce.getServletContext().setAttribute("DATA_SOURCE", dataSource);
+        }catch (IOException e){
+            throw new RuntimeException(e);
+        }
+
+
     }
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContextListener.super.contextDestroyed(sce);
     }
 
-    private static class AppProperties extends Properties {
-        public AppProperties() {
-            try {
-                load(getClass().getResourceAsStream("/db.properties"));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+
 }

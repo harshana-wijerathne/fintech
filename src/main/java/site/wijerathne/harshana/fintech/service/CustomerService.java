@@ -2,7 +2,6 @@ package site.wijerathne.harshana.fintech.service;
 
 import site.wijerathne.harshana.fintech.dao.AuditLogDAO;
 import site.wijerathne.harshana.fintech.dao.CustomerDAO;
-import site.wijerathne.harshana.fintech.dao.DatabaseConnection;
 import site.wijerathne.harshana.fintech.dto.AuditLogDTO;
 import site.wijerathne.harshana.fintech.dto.CustomerDTO;
 import site.wijerathne.harshana.fintech.model.Customer;
@@ -16,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+
 public class CustomerService {
     private static final Logger logger = Logger.getLogger(CustomerService.class.getName());
     private final CustomerDAO customerDAO;
@@ -28,9 +28,9 @@ public class CustomerService {
         this.dtoConverter = new DTOConverter();
     }
 
-    public List<CustomerDTO> getAllCustomers(int page, int pageSize) {
+    public List<CustomerDTO> getAllCustomers(int page, int pageSize,Connection connection) {
         try {
-            return customerDAO.getAllCustomers(page, pageSize)
+            return CustomerDAO.getAllCustomers(page, pageSize,connection)
                     .stream()
                     .map(dtoConverter::convertToCustomerDTO)
                     .collect(Collectors.toList());
@@ -40,9 +40,9 @@ public class CustomerService {
         }
     }
 
-    public CustomerDTO getCustomerById(String customerId) {
+    public CustomerDTO getCustomerById(String customerId,Connection connection) {
         try {
-            Customer customer = customerDAO.getCustomerById(customerId);
+            Customer customer = CustomerDAO.getCustomerById(customerId,connection);
             return customer != null ? dtoConverter.convertToCustomerDTO(customer) : null;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error fetching customer by ID: " + customerId, e);
@@ -50,9 +50,9 @@ public class CustomerService {
         }
     }
 
-    public List<CustomerDTO> searchCustomers(String searchTerm) {
+    public List<CustomerDTO> searchCustomers(String searchTerm,Connection connection) {
         try {
-            return customerDAO.findCustomersByNameOrNIC(searchTerm)
+            return CustomerDAO.findCustomersByNameOrNIC(searchTerm,connection)
                     .stream()
                     .map(dtoConverter::convertToCustomerDTO)
                     .collect(Collectors.toList());
@@ -62,10 +62,10 @@ public class CustomerService {
         }
     }
 
-    public CustomerDTO createCustomer(CustomerDTO customerDTO, String actorUserId, String ipAddress) {
+    public CustomerDTO createCustomer(CustomerDTO customerDTO, String actorUserId, String ipAddress,Connection connection) {
         try {
             Customer customer = dtoConverter.convertToCustomerModel(customerDTO);
-            Customer createdCustomer = customerDAO.saveCustomer(customer);
+            Customer createdCustomer = CustomerDAO.saveCustomer(customer,connection);
 
             // Log audit
             AuditLogDTO auditLog = AuditLogDTO.builder()
@@ -76,7 +76,7 @@ public class CustomerService {
                     .description("Created new customer: " + createdCustomer.getFullName() + "|" + createdCustomer.getNicPassport())
                     .ipAddress(ipAddress)
                     .build();
-            auditLogDAO.saveAuditLog(auditLog);
+            auditLogDAO.saveAuditLog(auditLog,connection);
 
             return dtoConverter.convertToCustomerDTO(createdCustomer);
         } catch (SQLException e) {
@@ -85,16 +85,16 @@ public class CustomerService {
         }
     }
 
-    public void deleteCustomer(String customerId, String actorUserId, String ipAddress) {
+    public void deleteCustomer(String customerId, String actorUserId, String ipAddress,Connection connection) {
         try {
 
-            Customer customer = customerDAO.getCustomerById(customerId);
+            Customer customer = customerDAO.getCustomerById(customerId,connection);
             if (customer == null) {
                 throw new IllegalArgumentException("Customer not found with ID: " + customerId);
             }
 
 
-            boolean deleted = customerDAO.deleteCustomer(customerId);
+            boolean deleted = CustomerDAO.deleteCustomer(customerId,connection);
             if (!deleted) {
                 throw new RuntimeException("Failed to delete customer with ID: " + customerId);
             }
@@ -107,7 +107,7 @@ public class CustomerService {
                     .description("Deleted customer: " + customer.getFullName())
                     .ipAddress(ipAddress)
                     .build();
-            auditLogDAO.saveAuditLog(auditLog);
+            auditLogDAO.saveAuditLog(auditLog,connection);
 
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error deleting customer with ID: " + customerId, e);
@@ -115,13 +115,11 @@ public class CustomerService {
         }
     }
 
-    public CustomerDTO updateCustomer(String customerId, CustomerDTO customerDTO, String actorUserId, String ipAddress) {
-        Connection conn = null;
+    public CustomerDTO updateCustomer(String customerId, CustomerDTO customerDTO, String actorUserId, String ipAddress,Connection connection) {
         try {
-            conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false);
+            connection.setAutoCommit(false);
 
-            Customer existingCustomer = customerDAO.getCustomerById(customerId);
+            Customer existingCustomer = CustomerDAO.getCustomerById(customerId,connection);
             if (existingCustomer == null) {
                 throw new IllegalArgumentException("Customer not found with ID: " + customerId);
             }
@@ -129,7 +127,7 @@ public class CustomerService {
             Customer customerToUpdate = dtoConverter.convertToCustomerModel(customerDTO);
             customerToUpdate.setCustomerId(customerId);
 
-            Customer updatedCustomer = customerDAO.updateCustomer(customerToUpdate, conn);
+            Customer updatedCustomer = customerDAO.updateCustomer(customerToUpdate, connection);
 
             AuditLogDTO auditLog = AuditLogDTO.builder()
                     .actorUserId(actorUserId)
@@ -139,15 +137,15 @@ public class CustomerService {
                     .description("Updated customer: " + updatedCustomer.getFullName())
                     .ipAddress(ipAddress)
                     .build();
-            auditLogDAO.saveAuditLog(auditLog);
+            auditLogDAO.saveAuditLog(auditLog,connection);
 
-            conn.commit();
+            connection.commit();
             return dtoConverter.convertToCustomerDTO(updatedCustomer);
 
         } catch (Exception e) {
-            if (conn != null) {
+            if (connection != null) {
                 try {
-                    conn.rollback();
+                    connection.rollback();
                 } catch (SQLException ex) {
                     logger.log(Level.SEVERE, "Transaction rollback failed", ex);
                 }
@@ -155,10 +153,10 @@ public class CustomerService {
             logger.log(Level.SEVERE, "Error updating customer with ID: " + customerId, e);
             throw new RuntimeException("Error updating customer", e);
         } finally {
-            if (conn != null) {
+            if (connection != null) {
                 try {
-                    conn.setAutoCommit(true);
-                    conn.close();
+                    connection.setAutoCommit(true);
+                    connection.close();
                 } catch (SQLException e) {
                     logger.log(Level.WARNING, "Error closing connection", e);
                 }

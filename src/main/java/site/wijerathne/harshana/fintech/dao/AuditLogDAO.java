@@ -6,11 +6,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 public class AuditLogDAO {
-    public void saveAuditLog(AuditLogDTO logDTO) {
+    public void saveAuditLog(AuditLogDTO logDTO,Connection connection) {
         String sql = "INSERT INTO audit_logs (actor_user_id, action_type, entity_type, entity_id, description, ip_address) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (
-                Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(sql);
         ) {
             stmt.setString(1, logDTO.getActorUserId());

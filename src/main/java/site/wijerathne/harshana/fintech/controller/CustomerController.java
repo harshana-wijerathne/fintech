@@ -3,6 +3,7 @@ package site.wijerathne.harshana.fintech.controller;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.dto.CustomerDTO;
 import site.wijerathne.harshana.fintech.model.User;
 import site.wijerathne.harshana.fintech.service.CustomerService;
@@ -14,7 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,14 +88,22 @@ public class CustomerController extends HttpServlet {
             return;
         }
 
-        List<CustomerDTO> customers = customerService.getAllCustomers(page, pageSize);
-        resp.getWriter().write(gson.toJson(customers));
+        HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
+        try(Connection connection = cp.getConnection()){
+            List<CustomerDTO> customers = customerService.getAllCustomers(page, pageSize,connection);
+            resp.getWriter().write(gson.toJson(customers));
+        }catch (Exception e){
+            logger.log(Level.WARNING, "Error while getting all customers", e);
+            throw new RuntimeException(e);
+        }
+
     }
 
     private void handleGetByPath(String pathInfo, HttpServletResponse resp) throws IOException {
-        try {
+        HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
+        try(Connection connection = cp.getConnection()) {
             String id = pathInfo.substring(1);
-            CustomerDTO customer = customerService.getCustomerById(id);
+            CustomerDTO customer = customerService.getCustomerById(id,connection);
             if (customer == null) {
                 sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Customer not found");
             } else {
@@ -100,27 +111,39 @@ public class CustomerController extends HttpServlet {
             }
         } catch (NumberFormatException e) {
             throw new NumberFormatException("Invalid path parameter format");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
     private void handleGetById(String id, HttpServletResponse resp) throws IOException {
-        CustomerDTO customer = customerService.getCustomerById(id);
-        if (customer == null) {
-            sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Customer not found");
-        } else {
-            resp.getWriter().write(gson.toJson(customer));
+        HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
+        CustomerDTO customer;
+        try (Connection connection = cp.getConnection()){
+            customer = customerService.getCustomerById(id,connection);
+            if (customer == null) {
+                sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Customer not found");
+            } else {
+                resp.getWriter().write(gson.toJson(customer));
+            }
+        }catch (Exception e){
+            logger.log(Level.WARNING, "Error while getting customer by id", e);
+            throw new RuntimeException(e);
         }
+
+
     }
 
     private void handleSearch(String searchTerm, HttpServletResponse resp) throws IOException {
-        try {
+        HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
+        try(Connection connection = cp.getConnection()) {
             if (searchTerm == null || searchTerm.trim().isEmpty()) {
                 logger.log(Level.WARNING, "Empty search term provided");
                 sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Search term cannot be empty");
                 return;
             }
 
-            List<CustomerDTO> customers = customerService.searchCustomers(searchTerm);
+            List<CustomerDTO> customers = customerService.searchCustomers(searchTerm,connection);
             if (customers.isEmpty()) {
                 logger.log(Level.INFO, "No customers found for search term: " + searchTerm);
                 resp.setStatus(HttpServletResponse.SC_OK);
@@ -146,8 +169,9 @@ public class CustomerController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
+        HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
 
-        try {
+        try(Connection connection = cp.getConnection()) {
             CustomerDTO customerDTO = gson.fromJson(req.getReader(), CustomerDTO.class);
 
             if (customerDTO.getFullName() == null || customerDTO.getFullName().trim().isEmpty() ||
@@ -161,8 +185,7 @@ public class CustomerController extends HttpServlet {
             String actorUserId = user.getUserId();
             String ipAddress = req.getRemoteAddr();
 
-            // Create the customer
-            CustomerDTO savedCustomer = customerService.createCustomer(customerDTO, actorUserId, ipAddress);
+            CustomerDTO savedCustomer = customerService.createCustomer(customerDTO, actorUserId, ipAddress,connection);
 
             // Return the saved customer with generated ID
             resp.setStatus(HttpServletResponse.SC_CREATED);
@@ -182,8 +205,9 @@ public class CustomerController extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
+        HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
 
-        try {
+        try(Connection connection = cp.getConnection()) {
             String pathInfo = req.getPathInfo();
             if (pathInfo == null || pathInfo.length() <= 1) {
                 sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Customer ID must be provided in the path");
@@ -197,7 +221,7 @@ public class CustomerController extends HttpServlet {
             String ipAddress = req.getRemoteAddr();
 
             // Delete the customer
-            customerService.deleteCustomer(customerId, actorUserId, ipAddress);
+            customerService.deleteCustomer(customerId, actorUserId, ipAddress,connection);
 
             // Return success response
             resp.setStatus(HttpServletResponse.SC_OK);
@@ -216,13 +240,13 @@ public class CustomerController extends HttpServlet {
         }
     }
 
-
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
+        HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
 
-        try {
+        try(Connection connection = cp.getConnection()) {
             String pathInfo = req.getPathInfo();
             if (pathInfo == null || pathInfo.length() <= 1) {
                 sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Customer ID must be provided in the path");
@@ -245,7 +269,7 @@ public class CustomerController extends HttpServlet {
             String ipAddress = req.getRemoteAddr();
 
 
-            CustomerDTO updatedCustomer = customerService.updateCustomer(customerId, customerDTO, actorUserId, ipAddress);
+            CustomerDTO updatedCustomer = customerService.updateCustomer(customerId, customerDTO, actorUserId, ipAddress,connection);
 
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write(gson.toJson(updatedCustomer));

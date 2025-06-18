@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class CustomerDAO {
     private static final Logger logger = Logger.getLogger(CustomerDAO.class.getName());
 
-    public static List<Customer> getAllCustomers(int page, int pageSize) {
+    public static List<Customer> getAllCustomers(int page, int pageSize, Connection connection) {
         if (page < 1 || pageSize < 1) {
             throw new IllegalArgumentException("Page and pageSize must be positive integers");
         }
@@ -23,12 +23,12 @@ public class CustomerDAO {
         String sql = "SELECT * " +
                 "FROM customers ORDER BY full_name LIMIT ? OFFSET ?";
 
-        Connection conn = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false);  // Start transaction
 
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try {
+
+            connection.setAutoCommit(false);  // Start transaction
+
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setInt(1, pageSize);
                 stmt.setInt(2, (page - 1) * pageSize);
 
@@ -56,28 +56,34 @@ public class CustomerDAO {
                     }
                 }
 
-                conn.commit();
+                connection.commit();
                 logger.info("Successfully retrieved " + customers.size() + " customers");
             } catch (SQLException e) {
-                if (conn != null) conn.rollback();
+                if (connection != null) connection.rollback();
                 throw e;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE,"Error fetching customers from database", e);
+            logger.log(Level.SEVERE, "Error fetching customers from database", e);
             throw new DataReadException(e);
         } finally {
-            if (conn != null) {
-                try { conn.setAutoCommit(true); } catch (SQLException e) {}
-                try { conn.close(); } catch (SQLException e) {}
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                } catch (SQLException e) {
+                }
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                }
             }
         }
         return customers;
     }
 
-    public Customer getCustomerById(String customerId) {
+    public static Customer getCustomerById(String customerId, Connection connection) {
         String sql = "SELECT * FROM customers WHERE customer_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (
+                PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, customerId);
 
@@ -104,14 +110,14 @@ public class CustomerDAO {
         return null;
     }
 
-    public List<Customer> findCustomersByNameOrNIC(String searchTerm) throws SQLException {
+    public static List<Customer> findCustomersByNameOrNIC(String searchTerm, Connection connection) throws SQLException {
         List<Customer> customers = new ArrayList<>();
         String sql = "SELECT customer_id, full_name, nic_passport, dob, address, mobile_no, email, created_at " +
                 "FROM customers WHERE full_name LIKE ? OR nic_passport LIKE ? " +
                 "LIMIT 100";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (
+                PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             // Validate and prepare search term
             if (searchTerm == null || searchTerm.trim().isEmpty()) {
@@ -159,7 +165,7 @@ public class CustomerDAO {
         }
     }
 
-    public Customer saveCustomer(Customer customer) throws SQLException {
+    public static Customer saveCustomer(Customer customer, Connection connection) throws SQLException {
 
         String sql = "INSERT INTO customers (customer_id, nic_passport, full_name, dob, address, mobile_no, email, created_at, updated_at) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -167,11 +173,10 @@ public class CustomerDAO {
 
         String customerId = UUID.randomUUID().toString();
         Timestamp now = new Timestamp(System.currentTimeMillis());
+        try {
+            connection.setAutoCommit(false);
 
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            conn.setAutoCommit(false);
-
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, customerId);
                 pstmt.setString(2, customer.getNicPassport());
                 pstmt.setString(3, customer.getFullName());
@@ -192,28 +197,30 @@ public class CustomerDAO {
                 customer.setCreatedAt(now);
                 customer.setUpdatedAt(now);
 
-                conn.commit(); // Commit transaction
+                connection.commit(); // Commit transaction
                 logger.log(Level.INFO, "Saved new customer with ID: {}", customerId);
 
                 return customer;
             } catch (SQLException e) {
-                conn.rollback(); // Rollback on error
-                logger.log(Level.SEVERE, "Error saving customer: {}"+e.getMessage(), e);
+                connection.rollback(); // Rollback on error
+                logger.log(Level.SEVERE, "Error saving customer: {}" + e.getMessage(), e);
                 throw new SQLException("Error saving customer: " + e.getMessage(), e);
             } finally {
-                conn.setAutoCommit(true); // Reset auto-commit
+                connection.setAutoCommit(true);
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Database connection error: {}"+ e.getMessage(), e);
-            throw new SQLException("Database connection error", e);
+        } catch (Exception e) {
+            connection.rollback();
+        } finally {
+            connection.setAutoCommit(true);
         }
+        return null;
     }
 
-    public boolean deleteCustomer(String customerId) throws SQLException {
+    public static boolean deleteCustomer(String customerId, Connection connection) throws SQLException {
         String sql = "DELETE FROM customers WHERE customer_id = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (
+                PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, customerId);
             int affectedRows = pstmt.executeUpdate();
@@ -225,16 +232,7 @@ public class CustomerDAO {
         }
     }
 
-    private String sanitizeSearchTerm(String term) {
-        if (term == null) return "";
-        // Remove wildcards to prevent overly broad searches
-        return term.replaceAll("[%_\\\\]", "");
-    }
-
-
-
-
-    public Customer updateCustomer(Customer customer, Connection conn) throws SQLException {
+    public static Customer updateCustomer(Customer customer, Connection conn) throws SQLException {
         String sql = "UPDATE customers SET nic_passport = ?, full_name = ?, dob = ?, " +
                 "address = ?, mobile_no = ?, email = ?, updated_at = ? " +
                 "WHERE customer_id = ?";
@@ -261,4 +259,12 @@ public class CustomerDAO {
             return customer;
         }
     }
+
+    private static String sanitizeSearchTerm(String term) {
+        if (term == null) return "";
+        // Remove wildcards to prevent overly broad searches
+        return term.replaceAll("[%_\\\\]", "");
+    }
+
+
 }

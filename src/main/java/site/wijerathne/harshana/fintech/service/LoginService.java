@@ -8,15 +8,15 @@ import site.wijerathne.harshana.fintech.dto.LoginRequestDTO;
 import site.wijerathne.harshana.fintech.model.User;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Connection;
 
 public class LoginService {
 
     private final LoginDAO loginDAO = new LoginDAO();
     private final AuditLogDAO auditLogDAO = new AuditLogDAO();
 
-    public User authenticate(LoginRequestDTO loginDTO, HttpServletRequest request) {
-        User user = loginDAO.getUserByUsername(loginDTO.getUsername());
-
+    public User authenticate(LoginRequestDTO loginDTO, HttpServletRequest request, Connection connection) {
+        User user = loginDAO.getUserByUsername(loginDTO.getUsername(),connection);
         if (user != null && BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
             AuditLogDTO log = new AuditLogDTO(
                     user.getUserId(),
@@ -26,7 +26,7 @@ public class LoginService {
                     "User logged in",
                     request.getRemoteAddr()
             );
-            auditLogDAO.saveAuditLog(log);
+            auditLogDAO.saveAuditLog(log,connection);
             return user;
         }
 

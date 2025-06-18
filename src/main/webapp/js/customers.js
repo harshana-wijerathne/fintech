@@ -202,7 +202,7 @@ document.getElementById("customerForm").addEventListener('submit', async functio
             email: formData.get('email')
         };
 
-        // Send to backend
+
         const response = await fetch('/admin/customers', {
             method: 'POST',
             headers: {
