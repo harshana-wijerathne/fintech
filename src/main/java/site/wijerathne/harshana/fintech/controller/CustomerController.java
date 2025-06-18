@@ -76,7 +76,7 @@ public class CustomerController extends HttpServlet {
 
     private void handleGetByPath(String pathInfo, HttpServletResponse resp) throws IOException {
         try {
-            int id = Integer.parseInt(pathInfo.substring(1));
+            String id = (pathInfo.substring(1));
             Customer customer = customerDAO.getCustomerById(id);
             if (customer == null) {
                 sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Customer not found");
@@ -89,7 +89,7 @@ public class CustomerController extends HttpServlet {
     }
 
     private void handleGetById(String id, HttpServletResponse resp) throws IOException {
-        int customerId = Integer.parseInt(id);
+        String customerId = id;
         Customer customer = customerDAO.getCustomerById(customerId);
         if (customer == null) {
             sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Customer not found");

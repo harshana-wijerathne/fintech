@@ -74,7 +74,33 @@ public class CustomerDAO {
         return customers;
     }
 
-    public Customer getCustomerById(int i) {
+    public Customer getCustomerById(String customerId) {
+        String sql = "SELECT * FROM customers WHERE customer_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, customerId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Customer customer = new Customer();
+                    customer.setCustomerId(rs.getString("customer_id"));
+                    customer.setFullName(rs.getString("full_name"));
+                    customer.setNicPassport(rs.getString("nic_passport"));
+                    customer.setDob(rs.getDate("dob"));
+                    customer.setAddress(rs.getString("address"));
+                    customer.setMobile(rs.getString("mobile_no"));
+                    customer.setEmail(rs.getString("email"));
+                    customer.setCreatedAt(rs.getTimestamp("created_at"));
+                    customer.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    return customer;
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching customer by ID", e);
+            throw new DataReadException(e);
+        }
         return null;
     }
 

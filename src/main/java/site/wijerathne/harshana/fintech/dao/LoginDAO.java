@@ -1,7 +1,5 @@
 package site.wijerathne.harshana.fintech.dao;
 
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.mindrot.jbcrypt.BCrypt;
 import site.wijerathne.harshana.fintech.model.User;
 
 import java.sql.Connection;
@@ -9,24 +7,32 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class LoginDAO {
-    User user = new User();
-    public User getUser(String username, String password ) {
-        try(
+    public User getUserByUsername(String username) {
+        String sql = "SELECT * FROM users WHERE username = ?";
+
+        try (
                 Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE username = ?");
-        ){
-            preparedStatement.setString(1,username);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if(resultSet.next()) {
-                user.setUsername(username);
-                user.setPassword(resultSet.getString("password"));
-                user.setRole(resultSet.getString("role"));
-                return user;
+                PreparedStatement stmt = connection.prepareStatement(sql)
+        ) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return User.builder()
+                        .userId(rs.getString("user_id"))
+                        .username(rs.getString("username"))
+                        .fullName(rs.getString("full_name"))
+                        .password(rs.getString("password"))
+                        .email(rs.getString("email"))
+                        .role(rs.getString("role"))
+                        .createdAt(rs.getTimestamp("created_at"))
+                        .build();
             }
-            return null;
-        }catch(Exception e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // Use proper logging in production
         }
+
+        return null;
     }
 }
