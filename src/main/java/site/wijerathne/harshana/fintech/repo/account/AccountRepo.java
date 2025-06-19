@@ -14,7 +14,7 @@ public interface AccountRepo {
     Account saveAccount(Account account);
     Account updateAccountDetails(Account account);
     boolean deleteAccount(String accountNumber);
-    List<AccountDetailsResponseDTO> searchAccounts(String search);
+    List<AccountDetails> searchAccounts(String search);
     public Optional<AccountDetails> getAccountDetailsById(String accountNumber);
     public Page<AccountDetails> getAllAccountsDetails(int page, int size);
 

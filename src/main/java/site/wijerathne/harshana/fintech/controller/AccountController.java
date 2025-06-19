@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.dto.account.AccountDetailsResponseDTO;
-import site.wijerathne.harshana.fintech.dto.customer.CustomerDTO;
 import site.wijerathne.harshana.fintech.model.Account;
 import site.wijerathne.harshana.fintech.repo.account.AccountRepo;
 import site.wijerathne.harshana.fintech.repo.account.AccountRepoImpl;
@@ -66,7 +65,7 @@ public class AccountController extends HttpServlet {
                 }
             } else if (pathInfo != null && pathInfo.matches("/\\d+")) {
                 try {
-                    AccountDetailsResponseDTO accountDetails = accountService.getAccountById(pathInfo.substring(1));
+                    AccountDetailsResponseDTO accountDetails = accountService.getAccountByAccountNumber(pathInfo.substring(1));
                     resp.getWriter().write(gson.toJson(accountDetails));
                 }catch (Exception e){
                     resp.sendError(HttpServletResponse.SC_BAD_REQUEST , "Account not found");
@@ -104,9 +103,10 @@ public class AccountController extends HttpServlet {
         }
     }
 
-    private void sendError(HttpServletResponse resp, int statusCode, String message) throws IOException {
-        resp.setStatus(statusCode);
-        resp.getWriter().write(gson.toJson(Map.of("error", true, "message", message)));
-    }
+
+
+
+
+
 }
 

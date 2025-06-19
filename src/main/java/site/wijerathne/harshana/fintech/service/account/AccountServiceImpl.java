@@ -9,9 +9,12 @@ import site.wijerathne.harshana.fintech.model.AccountDetails;
 import site.wijerathne.harshana.fintech.repo.account.AccountRepo;
 import site.wijerathne.harshana.fintech.util.Page;
 
+import javax.security.auth.login.AccountNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,8 +29,12 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountDetailsResponseDTO getAccountById(String accountNumber) {
-        return null;
+    public AccountDetailsResponseDTO getAccountByAccountNumber(String accountNumber) {
+        if(accountNumber == null) throw new IllegalArgumentException("accountNumber is null");
+        Optional<AccountDetails> AccountDetails = accountRepo.getAccountDetailsById(accountNumber);
+        if(AccountDetails.isEmpty()) throw new RuntimeException("account does not exist");
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(AccountDetails.get(), AccountDetailsResponseDTO.class);
     }
 
     @Override
@@ -35,12 +42,15 @@ public class AccountServiceImpl implements AccountService {
         int page = 1;
         int pageSize = 8;
 
+
         try {
             if (PageReq != null) {
                 page = Integer.parseInt(PageReq);
+                if(page < 1 ) throw new RuntimeException("Error: page and/or pageSize must be greater than 0");
             }
             if (PageSizeReq != null) {
                 pageSize = Integer.parseInt(PageSizeReq);
+                if(pageSize < 1) throw new RuntimeException("Error: page and/or pageSize must be greater than 0");
             }
         } catch (NumberFormatException e) {
             throw new NumberFormatException();
@@ -81,8 +91,18 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountDetailsResponseDTO> searchAccount(String accountNumber) {
-        return List.of();
+    public List<AccountDetailsResponseDTO> searchAccount(String key) {
+        if(key == null) throw new IllegalArgumentException("key is null");
+        List<AccountDetails> AccountList = accountRepo.searchAccounts(key);
+        List<AccountDetailsResponseDTO> list = new ArrayList<>();
+        ModelMapper modelMapper = new ModelMapper();
+        if(AccountList.isEmpty()) return list;
+        List<AccountDetailsResponseDTO> ResponseList
+                = AccountList.stream()
+                .map(accountDetails -> modelMapper.map(accountDetails, AccountDetailsResponseDTO.class))
+                .collect(Collectors.toList());
+
+        return ResponseList;
     }
 }
 

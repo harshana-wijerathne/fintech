@@ -167,22 +167,23 @@ public class AccountRepoImpl implements AccountRepo {
         }
     }
 
-    public List<AccountDetailsResponseDTO> searchAccounts(String search) {
+    public List<AccountDetails> searchAccounts(String search) {
         final String sql = """
         SELECT 
             sa.account_number, sa.opening_date, sa.account_type, sa.balance,
-            sa.created_at AS account_created_at, sa.updated_at AS account_updated_at,
+            sa.created_at AS sa_created_at, sa.updated_at AS sa_updated_at,
             c.customer_id, c.full_name, c.nic_passport, c.dob, c.address,
-            c.mobile_no, c.email, c.created_at AS customer_created_at, c.updated_at AS customer_updated_at
+            c.mobile_no, c.email, c.created_at AS c_created_at, c.updated_at AS c_updated_at
         FROM 
             saving_accounts sa
         JOIN 
             customers c ON sa.customer_id = c.customer_id
         WHERE 
             sa.account_number LIKE ? OR c.nic_passport LIKE ?
+        LIMIT 20
     """;
 
-        List<AccountDetailsResponseDTO> results = new ArrayList<>();
+        List<AccountDetails> results = new ArrayList<>();
 
 
         try (
@@ -194,7 +195,7 @@ public class AccountRepoImpl implements AccountRepo {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    results.add(mapToAccountDetailsDTO(rs));
+                    results.add(mapToAccountDetails(rs));
                 }
                 return results;
             }
@@ -324,8 +325,6 @@ public class AccountRepoImpl implements AccountRepo {
                 .customerUpdatedAt(rs.getTimestamp("c_updated_at"))
                 .build();
     }
-
-
 
     private AccountDetailsResponseDTO mapToAccountDetailsDTO(ResultSet rs) throws SQLException {
         AccountDetailsResponseDTO dto = new AccountDetailsResponseDTO();
