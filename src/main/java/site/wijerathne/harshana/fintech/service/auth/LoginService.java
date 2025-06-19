@@ -1,6 +1,6 @@
-package site.wijerathne.harshana.fintech.service;
+package site.wijerathne.harshana.fintech.service.auth;
 
-import site.wijerathne.harshana.fintech.dto.LoginRequestDTO;
+import site.wijerathne.harshana.fintech.dto.auth.LoginRequestDTO;
 import site.wijerathne.harshana.fintech.model.User;
 
 import javax.servlet.http.HttpServletRequest;

@@ -1,9 +1,9 @@
 package site.wijerathne.harshana.fintech.controller;
 
 import com.zaxxer.hikari.HikariDataSource;
-import site.wijerathne.harshana.fintech.dto.LoginRequestDTO;
+import site.wijerathne.harshana.fintech.dto.auth.LoginRequestDTO;
 import site.wijerathne.harshana.fintech.model.User;
-import site.wijerathne.harshana.fintech.service.LoginServiceImpl;
+import site.wijerathne.harshana.fintech.service.auth.LoginServiceImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

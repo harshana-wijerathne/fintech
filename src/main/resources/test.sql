@@ -1,0 +1,1 @@
+UPDATE saving_accounts SET account_type = 'CHILDREN', balance = 10000  WHERE account_number = '61d8dadb-0893-46d0-a';

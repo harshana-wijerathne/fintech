@@ -1,4 +1,4 @@
-package site.wijerathne.harshana.fintech.dto;
+package site.wijerathne.harshana.fintech.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SavingAccountDTO {
+public class AccountRequestDTO {
     private String customerId;
     private Timestamp openingDate;
     private String accountType;

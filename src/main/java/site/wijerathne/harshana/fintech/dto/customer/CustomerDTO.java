@@ -1,4 +1,4 @@
-package site.wijerathne.harshana.fintech.dto;
+package site.wijerathne.harshana.fintech.dto.customer;
 
 import lombok.*;
 import java.sql.Date;

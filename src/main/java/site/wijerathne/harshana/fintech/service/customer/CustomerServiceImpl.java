@@ -1,9 +1,9 @@
-package site.wijerathne.harshana.fintech.service;
+package site.wijerathne.harshana.fintech.service.customer;
 
 import site.wijerathne.harshana.fintech.repo.AuditLogRepo;
-import site.wijerathne.harshana.fintech.repo.CustomerRepo;
+import site.wijerathne.harshana.fintech.repo.customer.CustomerRepo;
 import site.wijerathne.harshana.fintech.dto.AuditLogDTO;
-import site.wijerathne.harshana.fintech.dto.CustomerDTO;
+import site.wijerathne.harshana.fintech.dto.customer.CustomerDTO;
 import site.wijerathne.harshana.fintech.model.Customer;
 import site.wijerathne.harshana.fintech.util.DTOConverter;
 

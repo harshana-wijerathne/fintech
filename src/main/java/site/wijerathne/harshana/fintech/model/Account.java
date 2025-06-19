@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SavingAccount {
+public class Account {
     private String accountNumber;
     private String customerId;
     private Timestamp openingDate;

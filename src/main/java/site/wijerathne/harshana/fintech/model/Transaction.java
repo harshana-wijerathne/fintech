@@ -7,8 +7,6 @@ import java.sql.Timestamp;
 
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class Transaction {
     private String transactionId;
     private String accountNumber;

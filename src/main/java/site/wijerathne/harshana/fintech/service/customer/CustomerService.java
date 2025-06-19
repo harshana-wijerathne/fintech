@@ -1,6 +1,6 @@
-package site.wijerathne.harshana.fintech.service;
+package site.wijerathne.harshana.fintech.service.customer;
 
-import site.wijerathne.harshana.fintech.dto.CustomerDTO;
+import site.wijerathne.harshana.fintech.dto.customer.CustomerDTO;
 
 import java.sql.Connection;
 import java.util.List;

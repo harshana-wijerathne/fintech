@@ -1,4 +1,4 @@
-package site.wijerathne.harshana.fintech.repo;
+package site.wijerathne.harshana.fintech.repo.auth;
 
 import site.wijerathne.harshana.fintech.model.User;
 

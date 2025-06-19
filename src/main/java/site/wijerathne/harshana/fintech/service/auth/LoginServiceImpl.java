@@ -1,10 +1,10 @@
-package site.wijerathne.harshana.fintech.service;
+package site.wijerathne.harshana.fintech.service.auth;
 
 import org.mindrot.jbcrypt.BCrypt;
 import site.wijerathne.harshana.fintech.repo.AuditLogRepo;
-import site.wijerathne.harshana.fintech.repo.LoginRepo;
+import site.wijerathne.harshana.fintech.repo.auth.LoginRepo;
 import site.wijerathne.harshana.fintech.dto.AuditLogDTO;
-import site.wijerathne.harshana.fintech.dto.LoginRequestDTO;
+import site.wijerathne.harshana.fintech.dto.auth.LoginRequestDTO;
 import site.wijerathne.harshana.fintech.model.User;
 
 import javax.servlet.http.HttpServletRequest;

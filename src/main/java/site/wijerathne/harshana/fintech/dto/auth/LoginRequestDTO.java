@@ -1,4 +1,4 @@
-package site.wijerathne.harshana.fintech.dto;
+package site.wijerathne.harshana.fintech.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,7 +1,8 @@
-package site.wijerathne.harshana.fintech.repo;
+package site.wijerathne.harshana.fintech.repo.customer;
 
 
 import com.mysql.cj.exceptions.DataReadException;
+import site.wijerathne.harshana.fintech.exception.DataAccessException;
 import site.wijerathne.harshana.fintech.model.Customer;
 
 import java.sql.*;
@@ -161,7 +162,7 @@ public class CustomerRepo {
 
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Database error during search for term: " + searchTerm, e);
-            throw new SQLException("Search failed", e);
+            throw new DataAccessException("Search failed", e);
         }
     }
 
@@ -204,7 +205,7 @@ public class CustomerRepo {
             } catch (SQLException e) {
                 connection.rollback(); // Rollback on error
                 logger.log(Level.SEVERE, "Error saving customer: {}" + e.getMessage(), e);
-                throw new SQLException("Error saving customer: " + e.getMessage(), e);
+                throw new DataAccessException("Error saving customer: " + e.getMessage(), e);
             } finally {
                 connection.setAutoCommit(true);
             }
@@ -253,16 +254,16 @@ public class CustomerRepo {
             if (affectedRows == 0) {
                 throw new SQLException("Updating customer failed, no rows affected");
             }
-
-            // Set updated timestamp
+            
             customer.setUpdatedAt(now);
             return customer;
+        }catch (SQLException e) {
+            throw  new DataAccessException("Error updating customer: " + e.getMessage(), e);
         }
     }
 
     private static String sanitizeSearchTerm(String term) {
         if (term == null) return "";
-        // Remove wildcards to prevent overly broad searches
         return term.replaceAll("[%_\\\\]", "");
     }
 

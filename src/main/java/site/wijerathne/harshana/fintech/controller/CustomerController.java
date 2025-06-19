@@ -4,10 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.zaxxer.hikari.HikariDataSource;
-import site.wijerathne.harshana.fintech.dto.CustomerDTO;
+import site.wijerathne.harshana.fintech.dto.customer.CustomerDTO;
+import site.wijerathne.harshana.fintech.exception.DataAccessException;
 import site.wijerathne.harshana.fintech.model.User;
-import site.wijerathne.harshana.fintech.service.CustomerService;
-import site.wijerathne.harshana.fintech.service.CustomerServiceImpl;
+import site.wijerathne.harshana.fintech.service.customer.CustomerService;
+import site.wijerathne.harshana.fintech.service.customer.CustomerServiceImpl;
 import site.wijerathne.harshana.fintech.util.SqlDateTypeAdapter;
 
 import javax.servlet.ServletException;
@@ -169,7 +170,6 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
         HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
 
         try(Connection connection = cp.getConnection()) {
@@ -244,7 +244,6 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
         HikariDataSource cp = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
 
         try(Connection connection = cp.getConnection()) {
@@ -282,7 +281,11 @@ public class CustomerController extends HttpServlet {
         } catch (IllegalArgumentException e) {
             logger.log(Level.WARNING, e.getMessage());
             sendError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-        } catch (Exception e) {
+        }catch ( DataAccessException e){
+            logger.log(Level.SEVERE, "Error updating customer", e);
+            sendError(resp, HttpServletResponse.SC_NOT_FOUND, "ID Not Found");
+        }
+        catch (Exception e) {
             logger.log(Level.SEVERE, "Error updating customer", e);
             sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to update customer");
         }

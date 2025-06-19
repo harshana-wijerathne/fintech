@@ -1,3 +1,14 @@
+CREATE TABLE users (
+                       user_id     CHAR(36) PRIMARY KEY,
+                       username    VARCHAR(100) UNIQUE NOT NULL,
+                       full_name   VARCHAR(100)        NOT NULL,
+                       password    VARCHAR(500)        NOT NULL,
+                       email       VARCHAR(100),
+                       role        ENUM('ADMIN', 'USER') DEFAULT 'USER',
+                       created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 CREATE TABLE customers (
                            customer_id    CHAR(36) PRIMARY KEY,
                            nic_passport   VARCHAR(50) UNIQUE NOT NULL,
@@ -11,18 +22,6 @@ CREATE TABLE customers (
                            INDEX idx_customer_name (full_name),
                            INDEX idx_nic (nic_passport)
 );
-
-
-CREATE TABLE users (
-                       user_id     CHAR(36) PRIMARY KEY,
-                       username    VARCHAR(100) UNIQUE NOT NULL,
-                       full_name   VARCHAR(100)        NOT NULL,
-                       password    VARCHAR(500)        NOT NULL,
-                       email       VARCHAR(100),
-                       role        ENUM('ADMIN', 'USER') DEFAULT 'USER',
-                       created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 
 CREATE TABLE saving_accounts (
                                  account_number VARCHAR(20) PRIMARY KEY,
@@ -43,7 +42,10 @@ CREATE TABLE transactions (
                               transaction_type  ENUM('DEPOSIT', 'WITHDRAW')           NOT NULL,
                               amount            DECIMAL(15,2)                         NOT NULL CHECK (amount > 0.00),
                               balance_after     DECIMAL(15,2)                         NOT NULL,
-                              FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number) ON DELETE CASCADE
+                              FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number) ON DELETE CASCADE,
+                              FOREIGN KEY (balance_after) REFERENCES saving_accounts(balance) ON DELETE CASCADE
+
+
 );
 
 CREATE TABLE audit_logs (
