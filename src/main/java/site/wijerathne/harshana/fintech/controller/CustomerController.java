@@ -7,6 +7,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.dto.CustomerDTO;
 import site.wijerathne.harshana.fintech.model.User;
 import site.wijerathne.harshana.fintech.service.CustomerService;
+import site.wijerathne.harshana.fintech.service.CustomerServiceImpl;
 import site.wijerathne.harshana.fintech.util.SqlDateTypeAdapter;
 
 import javax.servlet.ServletException;
@@ -33,7 +34,7 @@ public class CustomerController extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
-            this.customerService = new CustomerService();
+            this.customerService = new CustomerServiceImpl();
             this.gson = new GsonBuilder()
                     .registerTypeAdapter(Date.class, new SqlDateTypeAdapter())
                     .create();

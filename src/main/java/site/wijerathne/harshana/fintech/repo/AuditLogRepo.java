@@ -1,11 +1,11 @@
-package site.wijerathne.harshana.fintech.dao;
+package site.wijerathne.harshana.fintech.repo;
 
 import site.wijerathne.harshana.fintech.dto.AuditLogDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
-public class AuditLogDAO {
+public class AuditLogRepo {
     public void saveAuditLog(AuditLogDTO logDTO,Connection connection) {
         String sql = "INSERT INTO audit_logs (actor_user_id, action_type, entity_type, entity_id, description, ip_address) VALUES (?, ?, ?, ?, ?, ?)";
 

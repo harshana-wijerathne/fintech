@@ -1,7 +1,9 @@
 package site.wijerathne.harshana.fintech.util;
 
 import site.wijerathne.harshana.fintech.dto.CustomerDTO;
+import site.wijerathne.harshana.fintech.dto.SavingAccountDTO;
 import site.wijerathne.harshana.fintech.model.Customer;
+import site.wijerathne.harshana.fintech.model.SavingAccount;
 
 public class DTOConverter {
     public CustomerDTO convertToCustomerDTO(Customer customer) {
@@ -31,4 +33,29 @@ public class DTOConverter {
         customer.setUpdatedAt(customerDTO.getUpdatedAt());
         return customer;
     }
+
+
+
+
+    public SavingAccount convertToSavingAccount(SavingAccountDTO dto) {
+        if (dto == null) return null;
+        return SavingAccount.builder()
+                .customerId(dto.getCustomerId())
+                .openingDate(dto.getOpeningDate())
+                .accountType(dto.getAccountType())
+                .balance(dto.getBalance())
+                .build();
+    }
+
+    public SavingAccountDTO convertToSavingAccountDTO(SavingAccount account) {
+        if (account == null) return null;
+
+        return SavingAccountDTO.builder()
+                .customerId(account.getCustomerId())
+                .openingDate(account.getOpeningDate())
+                .accountType(account.getAccountType())
+                .balance(account.getBalance())
+                .build();
+    }
+
 }

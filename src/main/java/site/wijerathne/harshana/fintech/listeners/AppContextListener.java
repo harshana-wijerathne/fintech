@@ -3,6 +3,7 @@ package site.wijerathne.harshana.fintech.listeners;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.controller.CustomerController;
+import site.wijerathne.harshana.fintech.util.SqlScriptRunner;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +43,8 @@ public class AppContextListener implements ServletContextListener {
             HikariDataSource dataSource = new HikariDataSource(config);
 
             sce.getServletContext().setAttribute("DATA_SOURCE", dataSource);
+
+
         }catch (IOException e){
             throw new RuntimeException(e);
         }

@@ -1,6 +1,9 @@
-package site.wijerathne.harshana.fintech.model;
+package site.wijerathne.harshana.fintech.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -9,13 +12,9 @@ import java.sql.Timestamp;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SavingAccount {
-    private String accountNumber;
+public class SavingAccountDTO {
     private String customerId;
     private Timestamp openingDate;
     private String accountType;
     private BigDecimal balance;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
 }
-

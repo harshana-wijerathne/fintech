@@ -25,12 +25,13 @@ CREATE TABLE users (
 
 
 CREATE TABLE saving_accounts (
-                                 account_number CHAR(36) PRIMARY KEY,
-                                 customer_id    CHAR(36)                             NOT NULL,
-                                 opening_date   DATETIME                             NOT NULL,
-                                 balance        DECIMAL(15,2) DEFAULT 0.00           NOT NULL CHECK (balance >= 0),
-                                 created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                 updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                 account_number VARCHAR(20) PRIMARY KEY,
+                                 customer_id CHAR(36) NOT NULL,
+                                 opening_date DATETIME NOT NULL,
+                                 account_type ENUM('SAVING','PREMIUM','CHILDREN','WOMEN','SENIOR_CITIZEN') DEFAULT 'SAVING',
+                                 balance DECIMAL(15,2) DEFAULT 0.00 NOT NULL CHECK (balance >= 0),
+                                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                  FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
 );
 

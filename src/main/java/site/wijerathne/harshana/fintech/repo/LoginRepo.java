@@ -1,4 +1,4 @@
-package site.wijerathne.harshana.fintech.dao;
+package site.wijerathne.harshana.fintech.repo;
 
 import site.wijerathne.harshana.fintech.model.User;
 
@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class LoginDAO {
+public class LoginRepo {
     public User getUserByUsername(String username,Connection connection) {
         String sql = "SELECT * FROM users WHERE username = ?";
 

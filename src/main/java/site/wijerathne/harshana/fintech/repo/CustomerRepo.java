@@ -1,4 +1,4 @@
-package site.wijerathne.harshana.fintech.dao;
+package site.wijerathne.harshana.fintech.repo;
 
 
 import com.mysql.cj.exceptions.DataReadException;
@@ -11,8 +11,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CustomerDAO {
-    private static final Logger logger = Logger.getLogger(CustomerDAO.class.getName());
+public class CustomerRepo {
+    private static final Logger logger = Logger.getLogger(CustomerRepo.class.getName());
 
     public static List<Customer> getAllCustomers(int page, int pageSize, Connection connection) {
         if (page < 1 || pageSize < 1) {

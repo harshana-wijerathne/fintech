@@ -3,7 +3,7 @@ package site.wijerathne.harshana.fintech.controller;
 import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.dto.LoginRequestDTO;
 import site.wijerathne.harshana.fintech.model.User;
-import site.wijerathne.harshana.fintech.service.LoginService;
+import site.wijerathne.harshana.fintech.service.LoginServiceImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -14,7 +14,7 @@ import java.sql.Connection;
 @WebServlet("/login")
 public class LoginController extends HttpServlet {
 
-    private final LoginService loginService = new LoginService();
+    private final LoginServiceImpl loginService = new LoginServiceImpl();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
