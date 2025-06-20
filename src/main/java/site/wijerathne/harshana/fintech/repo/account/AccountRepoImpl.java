@@ -67,8 +67,8 @@ public class AccountRepoImpl implements AccountRepo {
 
     public Account saveAccount(Account account) {
         final String sql = "INSERT INTO saving_accounts " +
-                "(account_number, customer_id, opening_date, account_type, balance, created_at, updated_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+                "(account_number, customer_id, opening_date, account_type, balance) " +
+                "VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = connectionPool.getConnection()) {
 
@@ -80,8 +80,6 @@ public class AccountRepoImpl implements AccountRepo {
                 stmt.setTimestamp(3, account.getOpeningDate());
                 stmt.setString(4, account.getAccountType());
                 stmt.setBigDecimal(5, account.getBalance());
-                stmt.setTimestamp(6, account.getCreatedAt());
-                stmt.setTimestamp(7, account.getUpdatedAt());
 
                 int rows = stmt.executeUpdate();
                 if (rows == 0) throw new SQLException("Failed to save saving account");
@@ -136,8 +134,6 @@ public class AccountRepoImpl implements AccountRepo {
             throw new DataAccessException("Connection failure while updating account", e);
         }
     }
-
-    public Account updateAccountBalance(Account account) {}
 
     public boolean deleteAccount(String accountNumber) {
         final String sql = "DELETE FROM saving_accounts WHERE account_number = ?";

@@ -38,7 +38,8 @@ CREATE TABLE saving_accounts (
 CREATE TABLE transactions (
                               id BIGINT AUTO_INCREMENT PRIMARY KEY,
                               account_number VARCHAR(20) NOT NULL,
-                              amount DECIMAL(19,4) NOT NULL,
+                              amount DECIMAL(12,2) NOT NULL,
+                              new_balance DECIMAL(12,2) NOT NULL,
                               transaction_type ENUM('DEPOSIT', 'WITHDRAWAL', 'TRANSFER', 'FEE', 'INTEREST') NOT NULL,
                               description VARCHAR(255),
                               reference_number VARCHAR(50),
@@ -46,7 +47,7 @@ CREATE TABLE transactions (
                               FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number),
                               INDEX idx_account_number (account_number),
                               INDEX idx_created_at (created_at)
-) ENGINE=InnoDB;;
+);
 
 CREATE TABLE audit_logs (
                             log_id         BIGINT AUTO_INCREMENT PRIMARY KEY,

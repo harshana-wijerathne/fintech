@@ -1,12 +1,16 @@
-package site.wijerathne.harshana.fintech.model;
+package site.wijerathne.harshana.fintech.dto.transaction;
 
-import lombok.*;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
-@Data
-public class Transaction {
+@Setter
+@Getter
+public class TransactionResponseDTO {
     private String transactionId;
     private String accountNumber;
     private BigDecimal amount;
@@ -16,6 +20,4 @@ public class Transaction {
     private String referenceNumber;
     private Timestamp createdAt;
 
-
 }
-

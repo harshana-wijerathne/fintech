@@ -258,7 +258,7 @@ public class AccountServiceImpl implements AccountService {
 
     private void logAudit(String actionType, String entityId, HttpServletRequest req, String description) {
         try {
-            User user = (User) req.getAttribute("username");
+            User user = (User) req.getSession().getAttribute("username");
             AuditLogDTO auditLog = AuditLogDTO.builder()
                     .actorUserId(user.getUsername())
                     .actionType(actionType)
