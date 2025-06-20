@@ -2,6 +2,7 @@ package site.wijerathne.harshana.fintech.util;
 
 import site.wijerathne.harshana.fintech.dto.customer.CustomerDTO;
 import site.wijerathne.harshana.fintech.dto.account.AccountRequestDTO;
+import site.wijerathne.harshana.fintech.enums.AccountType;
 import site.wijerathne.harshana.fintech.model.Customer;
 import site.wijerathne.harshana.fintech.model.Account;
 
@@ -42,7 +43,7 @@ public class DTOConverter {
         return Account.builder()
                 .customerId(dto.getCustomerId())
                 .openingDate(dto.getOpeningDate())
-                .accountType(dto.getAccountType())
+                .accountType(String.valueOf(dto.getAccountType()))
                 .balance(dto.getBalance())
                 .build();
     }
@@ -53,7 +54,7 @@ public class DTOConverter {
         return AccountRequestDTO.builder()
                 .customerId(account.getCustomerId())
                 .openingDate(account.getOpeningDate())
-                .accountType(account.getAccountType())
+                .accountType(AccountType.valueOf(account.getAccountType()))
                 .balance(account.getBalance())
                 .build();
     }

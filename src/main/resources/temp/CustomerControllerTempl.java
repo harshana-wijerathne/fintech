@@ -5,8 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.dto.customer.CustomerDTO;
-import site.wijerathne.harshana.fintech.exception.*;
-import site.wijerathne.harshana.fintech.exception.customer.*;
+import site.wijerathne.harshana.fintech.exception.DataAccessException;
 import site.wijerathne.harshana.fintech.model.User;
 import site.wijerathne.harshana.fintech.repo.AuditLogRepo;
 import site.wijerathne.harshana.fintech.repo.customer.CustomerRepo;
@@ -21,7 +20,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InvalidClassException;
 import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @WebServlet("/admin/customers/*")
-public class CustomerController extends HttpServlet {
+public class CustomerControllerTempl extends HttpServlet {
     private static final Logger logger = Logger.getLogger(CustomerController.class.getName());
     private CustomerService customerService;
     private Gson gson;
@@ -44,7 +42,7 @@ public class CustomerController extends HttpServlet {
             HikariDataSource dataSource = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
             CustomerRepo customerRepo = new CustomerRepo(dataSource);
             AuditLogRepo auditLogRepo = new AuditLogRepo(dataSource);
-            this.customerService = new CustomerServiceImpl(customerRepo, auditLogRepo);
+            this.customerService = new CustomerServiceImpl(customerRepo,auditLogRepo);
             logger.log(Level.INFO, "CustomerController initialized successfully");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Controller initialization failed", e);
@@ -63,45 +61,32 @@ public class CustomerController extends HttpServlet {
             String search = req.getParameter("search");
 
             if (pathInfo != null && pathInfo.length() > 1) {
-                GetCustomerById(pathInfo, resp);
+                handleGetByPath(pathInfo, resp);
             } else if (id != null) {
-                GetCustomerByIdQuery(id, resp);
+                handleGetById(id, resp);
             } else if (search != null && !search.trim().isEmpty()) {
-                SearchCustomerByNicOrName(search, resp);
+                handleSearch(search, resp);
             } else {
-                GetAllCustomers(req, resp);
+                handleGetAll(req, resp);
             }
         } catch (NumberFormatException e) {
             logger.log(Level.WARNING, "Invalid ID format", e);
             sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid ID format");
-        } catch (CustomerNotFoundException e) {
-            logger.log(Level.WARNING, e.getMessage());
-            sendError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-        } catch (IllegalArgumentException e) {
-            logger.log(Level.WARNING, e.getMessage());
-            sendError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-        }catch (InvalidRequestException e){
-            logger.log(Level.WARNING, e.getMessage());
-            sendError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error", e);
             sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected error");
         }
     }
-
-    private void GetAllCustomers(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void handleGetAll(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         int page = 1;
         int pageSize = 8;
 
         try {
             if (req.getParameter("page") != null) {
                 page = Integer.parseInt(req.getParameter("page"));
-                if (page < 1) throw new InvalidRequestException("Page number must be greater than zero");
             }
             if (req.getParameter("pageSize") != null) {
                 pageSize = Integer.parseInt(req.getParameter("pageSize"));
-                if (pageSize < 1) throw new InvalidRequestException("PageSize number must be greater than zero");
             }
         } catch (NumberFormatException e) {
             logger.log(Level.WARNING, "Invalid pagination parameters", e);
@@ -109,44 +94,52 @@ public class CustomerController extends HttpServlet {
             return;
         }
 
-        try {
+        try{
             List<CustomerDTO> customers = customerService.getAllCustomers(page, pageSize);
             resp.getWriter().write(gson.toJson(customers));
-        } catch (CustomerServiceException e) {
-            logger.log(Level.SEVERE, "Error while getting all customers", e);
-            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving customers");
+        }catch (Exception e){
+            logger.log(Level.WARNING, "Error while getting all customers", e);
+            throw new RuntimeException(e);
         }
-    }
 
-    private void GetCustomerById(String pathInfo, HttpServletResponse resp) throws IOException {
+    }
+    private void handleGetByPath(String pathInfo, HttpServletResponse resp) throws IOException {
         try {
             String id = pathInfo.substring(1);
             CustomerDTO customer = customerService.getCustomerById(id);
-            resp.getWriter().write(gson.toJson(customer));
-        } catch (CustomerNotFoundException e) {
-            throw e;
+            if (customer == null) {
+                sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Customer not found");
+            } else {
+                resp.getWriter().write(gson.toJson(customer));
+            }
         } catch (NumberFormatException e) {
             throw new NumberFormatException("Invalid path parameter format");
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error while getting customer by path", e);
-            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving customer");
         }
     }
-
-    private void GetCustomerByIdQuery(String id, HttpServletResponse resp) throws IOException {
-        try {
-            CustomerDTO customer = customerService.getCustomerById(id);
-            resp.getWriter().write(gson.toJson(customer));
-        } catch (CustomerNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error while getting customer by id", e);
-            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving customer");
+    private void handleGetById(String id, HttpServletResponse resp){
+        CustomerDTO customer;
+        try{
+            customer = customerService.getCustomerById(id);
+            if (customer == null) {
+                sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Customer not found");
+            } else {
+                resp.getWriter().write(gson.toJson(customer));
+            }
+        }catch (Exception e){
+            logger.log(Level.WARNING, "Error while getting customer by id", e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-    }
 
-    private void SearchCustomerByNicOrName(String searchTerm, HttpServletResponse resp) throws IOException {
-        try {
+
+    }
+    private void handleSearch(String searchTerm, HttpServletResponse resp) throws IOException {
+        try{
+            if (searchTerm == null || searchTerm.trim().isEmpty()) {
+                logger.log(Level.WARNING, "Empty search term provided");
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Search term cannot be empty");
+                return;
+            }
+
             List<CustomerDTO> customers = customerService.searchCustomers(searchTerm);
             if (customers.isEmpty()) {
                 logger.log(Level.INFO, "No customers found for search term: " + searchTerm);
@@ -156,13 +149,17 @@ public class CustomerController extends HttpServlet {
                 logger.log(Level.INFO, "Found " + customers.size() + " customers for search term: " + searchTerm);
                 resp.getWriter().write(gson.toJson(customers));
             }
-        } catch (IllegalArgumentException e) {
-            logger.log(Level.WARNING, e.getMessage());
-            sendError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-        } catch (CustomerServiceException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Error during search for: " + searchTerm, e);
             sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error during search");
         }
+    }
+
+
+
+    private void sendError(HttpServletResponse resp, int statusCode, String message) throws IOException {
+        resp.setStatus(statusCode);
+        resp.getWriter().write(gson.toJson(Map.of("error", true, "message", message)));
     }
 
     @Override
@@ -173,7 +170,7 @@ public class CustomerController extends HttpServlet {
             return;
         }
 
-        try {
+        try{
             CustomerDTO customerDTO = gson.fromJson(req.getReader(), CustomerDTO.class);
             if (customerDTO.getFullName() == null || customerDTO.getFullName().trim().isEmpty() ||
                     customerDTO.getNicPassport() == null || customerDTO.getNicPassport().trim().isEmpty()) {
@@ -182,7 +179,7 @@ public class CustomerController extends HttpServlet {
                 return;
             }
 
-            DtoValidation.validate(customerDTO, resp);
+            DtoValidation.validate(customerDTO,resp);
 
             User user = (User) req.getSession().getAttribute("username");
             String actorUserId = user.getUserId();
@@ -190,6 +187,7 @@ public class CustomerController extends HttpServlet {
 
             CustomerDTO savedCustomer = customerService.createCustomer(customerDTO, actorUserId, ipAddress);
 
+            // Return the saved customer with generated ID
             resp.setStatus(HttpServletResponse.SC_CREATED);
             resp.getWriter().write(gson.toJson(savedCustomer));
             logger.log(Level.INFO, "Created new customer with ID: " + savedCustomer.getCustomerId());
@@ -197,14 +195,8 @@ public class CustomerController extends HttpServlet {
         } catch (JsonSyntaxException e) {
             logger.log(Level.WARNING, "Invalid JSON format", e);
             sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid customer data format");
-        } catch (CustomerCreationException e) {
-            logger.log(Level.SEVERE, "Error creating customer: " + e.getMessage(), e);
-            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to create customer");
-        } catch (IllegalArgumentException e) {
-            logger.log(Level.WARNING, e.getMessage(), e);
-            sendError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Unexpected error while saving customer", e);
+            logger.log(Level.SEVERE, "Error while saving customer", e);
             sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save customer");
         }
     }
@@ -212,7 +204,7 @@ public class CustomerController extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        try {
+        try{
             String pathInfo = req.getPathInfo();
             if (pathInfo == null || pathInfo.length() <= 1) {
                 sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Customer ID must be provided in the path");
@@ -225,8 +217,10 @@ public class CustomerController extends HttpServlet {
             String actorUserId = user.getUserId();
             String ipAddress = req.getRemoteAddr();
 
+            // Delete the customer
             customerService.deleteCustomer(customerId, actorUserId, ipAddress);
 
+            // Return success response
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write(gson.toJson(Map.of(
                     "success", true,
@@ -234,14 +228,11 @@ public class CustomerController extends HttpServlet {
             )));
             logger.log(Level.INFO, "Deleted customer with ID: " + customerId);
 
-        } catch (CustomerNotFoundException e) {
+        } catch (IllegalArgumentException e) {
             logger.log(Level.WARNING, e.getMessage());
             sendError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-        } catch (CustomerDeletionException e) {
-            logger.log(Level.SEVERE, "Error deleting customer: " + e.getMessage(), e);
-            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete customer");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Unexpected error deleting customer", e);
+            logger.log(Level.SEVERE, "Error deleting customer", e);
             sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete customer");
         }
     }
@@ -253,7 +244,7 @@ public class CustomerController extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Content-Type must be application/json");
             return;
         }
-        try {
+        try{
             CustomerDTO customerDTO = gson.fromJson(req.getReader(), CustomerDTO.class);
 
             if (customerDTO.getFullName() == null || customerDTO.getFullName().trim().isEmpty() ||
@@ -263,11 +254,13 @@ public class CustomerController extends HttpServlet {
                 return;
             }
 
-            DtoValidation.validate(customerDTO, resp);
+            DtoValidation.validate(customerDTO,resp);
+
 
             User user = (User) req.getSession().getAttribute("username");
             String actorUserId = user.getUserId();
             String ipAddress = req.getRemoteAddr();
+
 
             CustomerDTO updatedCustomer = customerService.updateCustomer(customerDTO, actorUserId, ipAddress);
 
@@ -278,26 +271,20 @@ public class CustomerController extends HttpServlet {
         } catch (JsonSyntaxException e) {
             logger.log(Level.WARNING, "Invalid JSON format", e);
             sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid customer data format");
-        } catch (CustomerNotFoundException e) {
+        } catch (IllegalArgumentException e) {
             logger.log(Level.WARNING, e.getMessage());
             sendError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-        } catch (CustomerUpdateException e) {
-            logger.log(Level.SEVERE, "Error updating customer: " + e.getMessage(), e);
-            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to update customer");
-        } catch (DataAccessException e) {
+        }catch ( DataAccessException e){
             logger.log(Level.SEVERE, "Error updating customer", e);
             sendError(resp, HttpServletResponse.SC_NOT_FOUND, "ID Not Found");
-        } catch (IOException e) {
+        }catch (IOException e) {
             logger.log(Level.SEVERE, "Validation Error", e);
             sendError(resp, HttpServletResponse.SC_NOT_ACCEPTABLE, "ID Not Found");
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Unexpected error updating customer", e);
+        }
+        catch (Exception e) {
+            logger.log(Level.SEVERE, "Error updating customer", e);
             sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to update customer");
         }
     }
 
-    private void sendError(HttpServletResponse resp, int statusCode, String message) throws IOException {
-        resp.setStatus(statusCode);
-        resp.getWriter().write(gson.toJson(Map.of("error", true, "message", message)));
-    }
 }

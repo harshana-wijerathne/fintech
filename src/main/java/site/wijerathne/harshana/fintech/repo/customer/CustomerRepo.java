@@ -2,6 +2,7 @@ package site.wijerathne.harshana.fintech.repo.customer;
 
 
 import com.mysql.cj.exceptions.DataReadException;
+import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.exception.DataAccessException;
 import site.wijerathne.harshana.fintech.model.Customer;
 
@@ -13,9 +14,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CustomerRepo {
-    private static final Logger logger = Logger.getLogger(CustomerRepo.class.getName());
+    private final Logger logger = Logger.getLogger(CustomerRepo.class.getName());
+    private HikariDataSource connectionPool;
 
-    public static List<Customer> getAllCustomers(int page, int pageSize, Connection connection) {
+    public CustomerRepo(HikariDataSource connectionPool) {
+        this.connectionPool = connectionPool;
+    }
+
+    public List<Customer> getAllCustomers(int page, int pageSize) {
         if (page < 1 || pageSize < 1) {
             throw new IllegalArgumentException("Page and pageSize must be positive integers");
         }
@@ -24,67 +30,51 @@ public class CustomerRepo {
         String sql = "SELECT * " +
                 "FROM customers ORDER BY full_name LIMIT ? OFFSET ?";
 
+        try (
+                Connection connection = connectionPool.getConnection();
+                PreparedStatement stmt = connection.prepareStatement(sql)) {
 
-        try {
+            stmt.setInt(1, pageSize);
+            stmt.setInt(2, (page - 1) * pageSize);
 
-            connection.setAutoCommit(false);  // Start transaction
+            logger.info("Executing query: " + sql + " with page=" + page + ", pageSize=" + pageSize);
 
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.setInt(1, pageSize);
-                stmt.setInt(2, (page - 1) * pageSize);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Customer customer = new Customer();
+                    customer.setCustomerId(rs.getString("customer_id"));
+                    customer.setFullName(rs.getString("full_name"));
+                    customer.setNicPassport(rs.getString("nic_passport"));
 
-                logger.info("Executing query: " + sql + " with page=" + page + ", pageSize=" + pageSize);
+                    Date dob = rs.getDate("dob");
+                    customer.setDob(rs.wasNull() ? null : dob);
 
-                try (ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        Customer customer = new Customer();
-                        customer.setCustomerId(rs.getString("customer_id"));
-                        customer.setFullName(rs.getString("full_name"));
-                        customer.setNicPassport(rs.getString("nic_passport"));
+                    String address = rs.getString("address");
+                    customer.setAddress(rs.wasNull() ? null : address);
 
-                        Date dob = rs.getDate("dob");
-                        customer.setDob(rs.wasNull() ? null : dob);
+                    customer.setMobile(rs.getString("mobile_no"));
+                    customer.setEmail(rs.getString("email"));
+                    customer.setCreatedAt(rs.getTimestamp("created_at"));
+                    customer.setUpdatedAt(rs.getTimestamp("updated_at"));
 
-                        String address = rs.getString("address");
-                        customer.setAddress(rs.wasNull() ? null : address);
+                    customers.add(customer);
 
-                        customer.setMobile(rs.getString("mobile_no"));
-                        customer.setEmail(rs.getString("email"));
-                        customer.setCreatedAt(rs.getTimestamp("created_at"));
-                        customer.setUpdatedAt(rs.getTimestamp("updated_at"));
-
-                        customers.add(customer);
-                    }
                 }
-
-                connection.commit();
-                logger.info("Successfully retrieved " + customers.size() + " customers");
+                return customers;
             } catch (SQLException e) {
-                if (connection != null) connection.rollback();
-                throw e;
+                logger.log(Level.SEVERE, "Error fetching customers from database", e);
+                throw new DataAccessException("Error fetching customers from database", e);
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error fetching customers from database", e);
-            throw new DataReadException(e);
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.setAutoCommit(true);
-                } catch (SQLException e) {
-                }
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                }
-            }
+            throw new DataAccessException("Error fetching customers from database", e);
         }
-        return customers;
     }
 
-    public static Customer getCustomerById(String customerId, Connection connection) {
+    public Customer getCustomerById(String customerId) {
         String sql = "SELECT * FROM customers WHERE customer_id = ?";
-        try (
-                PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, customerId);
 
@@ -100,9 +90,11 @@ public class CustomerRepo {
                     customer.setEmail(rs.getString("email"));
                     customer.setCreatedAt(rs.getTimestamp("created_at"));
                     customer.setUpdatedAt(rs.getTimestamp("updated_at"));
+
                     return customer;
                 }
             }
+
 
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error fetching customer by ID", e);
@@ -111,16 +103,15 @@ public class CustomerRepo {
         return null;
     }
 
-    public static List<Customer> findCustomersByNameOrNIC(String searchTerm, Connection connection) throws SQLException {
+    public List<Customer> findCustomersByNameOrNIC(String searchTerm) throws SQLException {
         List<Customer> customers = new ArrayList<>();
         String sql = "SELECT customer_id, full_name, nic_passport, dob, address, mobile_no, email, created_at " +
                 "FROM customers WHERE full_name LIKE ? OR nic_passport LIKE ? " +
                 "LIMIT 100";
 
-        try (
+        try (   Connection connection = connectionPool.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
-            // Validate and prepare search term
             if (searchTerm == null || searchTerm.trim().isEmpty()) {
                 throw new IllegalArgumentException("Search term cannot be empty");
             }
@@ -136,22 +127,16 @@ public class CustomerRepo {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Customer customer = new Customer();
-                    // Note: Using getString for UUID since it's CHAR(36)
                     customer.setCustomerId(rs.getString("customer_id"));
                     customer.setFullName(rs.getString("full_name"));
                     customer.setNicPassport(rs.getString("nic_passport"));
 
-                    // Handle required NOT NULL fields
                     customer.setDob(rs.getDate("dob"));
                     customer.setAddress(rs.getString("address"));
                     customer.setMobile(rs.getString("mobile_no"));  // Changed from mobile to mobile_no
 
-                    // Handle optional email
                     String email = rs.getString("email");
                     customer.setEmail(rs.wasNull() ? null : email);
-
-                    // Add timestamp if needed
-                    // customer.setCreatedAt(rs.getTimestamp("created_at"));
 
                     customers.add(customer);
                 }
@@ -166,7 +151,7 @@ public class CustomerRepo {
         }
     }
 
-    public static Customer saveCustomer(Customer customer, Connection connection) throws SQLException {
+    public Customer saveCustomer(Customer customer) throws SQLException {
 
         String sql = "INSERT INTO customers (customer_id, nic_passport, full_name, dob, address, mobile_no, email, created_at, updated_at) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -174,9 +159,8 @@ public class CustomerRepo {
 
         String customerId = UUID.randomUUID().toString();
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        try {
+        try(Connection connection = connectionPool.getConnection();) {
             connection.setAutoCommit(false);
-
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, customerId);
                 pstmt.setString(2, customer.getNicPassport());
@@ -188,19 +172,16 @@ public class CustomerRepo {
                 pstmt.setTimestamp(8, now);
                 pstmt.setTimestamp(9, now);
 
-
                 int affectedRows = pstmt.executeUpdate();
                 if (affectedRows == 0) {
                     throw new SQLException("Creating customer failed, no rows affected");
                 }
-
                 customer.setCustomerId(customerId);
                 customer.setCreatedAt(now);
                 customer.setUpdatedAt(now);
 
-                connection.commit(); // Commit transaction
+                connection.commit();
                 logger.log(Level.INFO, "Saved new customer with ID: {}", customerId);
-
                 return customer;
             } catch (SQLException e) {
                 connection.rollback(); // Rollback on error
@@ -209,18 +190,15 @@ public class CustomerRepo {
             } finally {
                 connection.setAutoCommit(true);
             }
-        } catch (Exception e) {
-            connection.rollback();
-        } finally {
-            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error saving customer: " + e.getMessage(), e);
         }
-        return null;
     }
 
-    public static boolean deleteCustomer(String customerId, Connection connection) throws SQLException {
+    public boolean deleteCustomer(String customerId) throws SQLException {
         String sql = "DELETE FROM customers WHERE customer_id = ?";
 
-        try (
+        try ( Connection connection = connectionPool.getConnection();
                 PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, customerId);
@@ -233,36 +211,45 @@ public class CustomerRepo {
         }
     }
 
-    public static Customer updateCustomer(Customer customer, Connection conn) throws SQLException {
+    public Customer updateCustomer(Customer customer) throws SQLException {
         String sql = "UPDATE customers SET nic_passport = ?, full_name = ?, dob = ?, " +
                 "address = ?, mobile_no = ?, email = ?, updated_at = ? " +
                 "WHERE customer_id = ?";
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            Timestamp now = new Timestamp(System.currentTimeMillis());
+        try ( Connection conn = connectionPool.getConnection()){
+            conn.setAutoCommit(false);
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                Timestamp now = new Timestamp(System.currentTimeMillis());
 
-            pstmt.setString(1, customer.getNicPassport());
-            pstmt.setString(2, customer.getFullName());
-            pstmt.setDate(3, customer.getDob() != null ? new java.sql.Date(customer.getDob().getTime()) : null);
-            pstmt.setString(4, customer.getAddress());
-            pstmt.setString(5, customer.getMobile());
-            pstmt.setString(6, customer.getEmail());
-            pstmt.setTimestamp(7, now);
-            pstmt.setString(8, customer.getCustomerId());
+                pstmt.setString(1, customer.getNicPassport());
+                pstmt.setString(2, customer.getFullName());
+                pstmt.setDate(3, customer.getDob() != null ? new java.sql.Date(customer.getDob().getTime()) : null);
+                pstmt.setString(4, customer.getAddress());
+                pstmt.setString(5, customer.getMobile());
+                pstmt.setString(6, customer.getEmail());
+                pstmt.setTimestamp(7, now);
+                pstmt.setString(8, customer.getCustomerId());
 
-            int affectedRows = pstmt.executeUpdate();
-            if (affectedRows == 0) {
-                throw new SQLException("Updating customer failed, no rows affected");
+                int affectedRows = pstmt.executeUpdate();
+                if (affectedRows == 0) {
+                    throw new SQLException("Updating customer failed, no rows affected");
+                }
+                customer.setUpdatedAt(now);
+                conn.commit();
+                return customer;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw new DataAccessException("Error updating customer: " + e.getMessage(), e);
             }
-            
-            customer.setUpdatedAt(now);
-            return customer;
-        }catch (SQLException e) {
-            throw  new DataAccessException("Error updating customer: " + e.getMessage(), e);
+        }catch (SQLException e){
+            logger.log(Level.SEVERE, "Error updating customer: {}" + e.getMessage(), e);
+            throw new DataAccessException("Error updating customer: " + e.getMessage(), e);
         }
+
+
     }
 
-    private static String sanitizeSearchTerm(String term) {
+    private String sanitizeSearchTerm(String term) {
         if (term == null) return "";
         return term.replaceAll("[%_\\\\]", "");
     }

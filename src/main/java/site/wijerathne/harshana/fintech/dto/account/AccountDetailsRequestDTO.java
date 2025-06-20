@@ -17,10 +17,4 @@ public class AccountDetailsRequestDTO {
     private String accountNumber;
     private String accountType;
     private String customerId;
-    private String fullName;
-    private String nicPassport;
-    private Date dob;
-    private String address;
-    private String mobileNo;
-    private String email;
 }

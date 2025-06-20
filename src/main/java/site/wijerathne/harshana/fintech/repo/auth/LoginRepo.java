@@ -1,5 +1,7 @@
 package site.wijerathne.harshana.fintech.repo.auth;
 
+import com.zaxxer.hikari.HikariDataSource;
+import org.modelmapper.internal.bytebuddy.implementation.bytecode.member.HandleInvocation;
 import site.wijerathne.harshana.fintech.model.User;
 
 import java.sql.Connection;
@@ -7,10 +9,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class LoginRepo {
-    public User getUserByUsername(String username,Connection connection) {
+
+    private HikariDataSource connectionPool;
+
+    public LoginRepo(HikariDataSource connectionPool) {
+        this.connectionPool = connectionPool;
+    }
+
+
+    public User getUserByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
 
-        try (
+        try (   Connection connection = connectionPool.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(sql)
         ) {
             stmt.setString(1, username);

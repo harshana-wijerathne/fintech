@@ -1,5 +1,6 @@
 package site.wijerathne.harshana.fintech.service.auth;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.mindrot.jbcrypt.BCrypt;
 import site.wijerathne.harshana.fintech.repo.AuditLogRepo;
 import site.wijerathne.harshana.fintech.repo.auth.LoginRepo;
@@ -12,11 +13,16 @@ import java.sql.Connection;
 
 public class LoginServiceImpl implements LoginService {
 
-    private final LoginRepo loginRepo = new LoginRepo();
-    private final AuditLogRepo auditLogRepo = new AuditLogRepo();
+    private final LoginRepo loginRepo;
+    private final AuditLogRepo auditLogRepo;
+
+    public LoginServiceImpl(LoginRepo loginRepo, AuditLogRepo auditLogRepo) {
+        this.loginRepo = loginRepo;
+        this.auditLogRepo = auditLogRepo;
+    }
 
     public User authenticate(LoginRequestDTO loginDTO, HttpServletRequest request, Connection connection) {
-        User user = loginRepo.getUserByUsername(loginDTO.getUsername(),connection);
+        User user = loginRepo.getUserByUsername(loginDTO.getUsername());
         if (user != null && BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
             AuditLogDTO log = new AuditLogDTO(
                     user.getUserId(),
@@ -26,7 +32,7 @@ public class LoginServiceImpl implements LoginService {
                     "User logged in",
                     request.getRemoteAddr()
             );
-            auditLogRepo.saveAuditLog(log,connection);
+            auditLogRepo.saveAuditLog(log);
             return user;
         }
 

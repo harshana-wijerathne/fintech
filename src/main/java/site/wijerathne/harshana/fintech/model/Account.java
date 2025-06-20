@@ -17,5 +17,18 @@ public class Account {
     private BigDecimal balance;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "accountNumber='" + accountNumber + '\'' +
+                ", customerId='" + customerId + '\'' +
+                ", openingDate=" + openingDate +
+                ", accountType='" + accountType + '\'' +
+                ", balance=" + balance +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }
 

@@ -1,6 +1,5 @@
-package site.wijerathne.harshana.fintech.service.customer;
+package temp;
 
-import site.wijerathne.harshana.fintech.exception.customer.*;
 import site.wijerathne.harshana.fintech.repo.AuditLogRepo;
 import site.wijerathne.harshana.fintech.repo.customer.CustomerRepo;
 import site.wijerathne.harshana.fintech.dto.AuditLogDTO;
@@ -14,11 +13,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+
 public class CustomerServiceImpl implements CustomerService {
     private static final Logger logger = Logger.getLogger(CustomerServiceImpl.class.getName());
     private final CustomerRepo customerRepo;
     private final AuditLogRepo auditLogRepo;
     private final DTOConverter dtoConverter;
+
 
     public CustomerServiceImpl(CustomerRepo customerRepo, AuditLogRepo auditLogRepo) {
         this.customerRepo = customerRepo;
@@ -34,49 +35,34 @@ public class CustomerServiceImpl implements CustomerService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error fetching all customers", e);
-            throw new CustomerServiceException("Error fetching customers", e);
+            throw new RuntimeException("Error fetching customers", e);
         }
     }
 
     public CustomerDTO getCustomerById(String customerId) {
         try {
             Customer customer = customerRepo.getCustomerById(customerId);
-            if (customer == null) {
-                logger.log(Level.WARNING, "Customer not found with ID: " + customerId);
-                throw new CustomerNotFoundException(customerId);
-            }
-            return dtoConverter.convertToCustomerDTO(customer);
-        } catch (CustomerNotFoundException e) {
-            throw e;
+            return customer != null ? dtoConverter.convertToCustomerDTO(customer) : null;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error fetching customer by ID: " + customerId, e);
-            throw new CustomerServiceException("Error fetching customer", e);
+            throw new RuntimeException("Error fetching customer", e);
         }
     }
 
     public List<CustomerDTO> searchCustomers(String searchTerm) {
         try {
-            if (searchTerm == null || searchTerm.trim().isEmpty()) {
-                logger.log(Level.WARNING, "Empty search term provided");
-                throw new IllegalArgumentException("Search term cannot be empty");
-            }
-
-            List<Customer> customers = customerRepo.findCustomersByNameOrNIC(searchTerm);
-            return customers.stream()
+            return customerRepo.findCustomersByNameOrNIC(searchTerm)
+                    .stream()
                     .map(dtoConverter::convertToCustomerDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error searching customers with term: " + searchTerm, e);
-            throw new CustomerServiceException("Error searching customers", e);
+            throw new RuntimeException("Error searching customers", e);
         }
     }
 
     public CustomerDTO createCustomer(CustomerDTO customerDTO, String actorUserId, String ipAddress) {
         try {
-            if (customerDTO == null) {
-                throw new IllegalArgumentException("Customer data cannot be null");
-            }
-
             Customer customer = dtoConverter.convertToCustomerModel(customerDTO);
             Customer createdCustomer = customerRepo.saveCustomer(customer);
 
@@ -94,25 +80,22 @@ public class CustomerServiceImpl implements CustomerService {
             return dtoConverter.convertToCustomerDTO(createdCustomer);
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error creating customer", e);
-            throw new CustomerCreationException("Error creating customer", e);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Unexpected error creating customer", e);
-            throw new CustomerCreationException("Unexpected error creating customer", e);
+            throw new RuntimeException("Error creating customer", e);
         }
     }
 
     public void deleteCustomer(String customerId, String actorUserId, String ipAddress) {
         try {
+
             Customer customer = customerRepo.getCustomerById(customerId);
             if (customer == null) {
-                logger.log(Level.WARNING, "Customer not found with ID: " + customerId);
-                throw new CustomerNotFoundException(customerId);
+                throw new IllegalArgumentException("Customer not found with ID: " + customerId);
             }
+
 
             boolean deleted = customerRepo.deleteCustomer(customerId);
             if (!deleted) {
-                logger.log(Level.SEVERE, "Failed to delete customer with ID: " + customerId);
-                throw new CustomerDeletionException("Failed to delete customer with ID: " + customerId);
+                throw new RuntimeException("Failed to delete customer with ID: " + customerId);
             }
 
             AuditLogDTO auditLog = AuditLogDTO.builder()
@@ -127,21 +110,16 @@ public class CustomerServiceImpl implements CustomerService {
 
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error deleting customer with ID: " + customerId, e);
-            throw new CustomerDeletionException("Error deleting customer", e);
+            throw new RuntimeException("Error deleting customer", e);
         }
     }
 
     public CustomerDTO updateCustomer(CustomerDTO customerDTO, String actorUserId, String ipAddress) {
         try {
-            if (customerDTO == null) {
-                throw new IllegalArgumentException("Customer data cannot be null");
-            }
-
             String customerId = customerDTO.getCustomerId();
-            Customer existingCustomer = customerRepo.getCustomerById(customerId);
+            Customer existingCustomer = customerRepo.getCustomerById(customerDTO.getCustomerId());
             if (existingCustomer == null) {
-                logger.log(Level.WARNING, "Customer not found with ID: " + customerId);
-                throw new CustomerNotFoundException(customerId);
+                throw new IllegalArgumentException("Customer not found with ID: " + customerId);
             }
 
             Customer customerToUpdate = dtoConverter.convertToCustomerModel(customerDTO);
@@ -161,14 +139,9 @@ public class CustomerServiceImpl implements CustomerService {
 
             return dtoConverter.convertToCustomerDTO(updatedCustomer);
 
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error updating customer with ID: " + customerDTO.getCustomerId(), e);
-            throw new CustomerUpdateException("Error updating customer", e);
-        } catch (CustomerNotFoundException e) {
-            throw e;
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Unexpected error updating customer", e);
-            throw new CustomerUpdateException("Unexpected error updating customer", e);
+            logger.log(Level.SEVERE, "Error updating customer with ID: " + customerDTO.getCustomerId(), e);
+            throw new RuntimeException("Error updating customer", e);
         }
     }
 }

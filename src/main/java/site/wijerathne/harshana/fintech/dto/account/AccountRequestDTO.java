@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import site.wijerathne.harshana.fintech.enums.AccountType;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -15,6 +16,6 @@ import java.sql.Timestamp;
 public class AccountRequestDTO {
     private String customerId;
     private Timestamp openingDate;
-    private String accountType;
+    private AccountType accountType;
     private BigDecimal balance;
 }

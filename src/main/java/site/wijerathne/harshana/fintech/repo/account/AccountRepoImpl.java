@@ -137,6 +137,8 @@ public class AccountRepoImpl implements AccountRepo {
         }
     }
 
+    public Account updateAccountBalance(Account account) {}
+
     public boolean deleteAccount(String accountNumber) {
         final String sql = "DELETE FROM saving_accounts WHERE account_number = ?";
 

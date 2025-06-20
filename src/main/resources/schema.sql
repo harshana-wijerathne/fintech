@@ -36,26 +36,26 @@ CREATE TABLE saving_accounts (
 
 
 CREATE TABLE transactions (
-                              transaction_id    CHAR(36) PRIMARY KEY,
-                              account_number    CHAR(36)                              NOT NULL,
-                              transaction_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                              transaction_type  ENUM('DEPOSIT', 'WITHDRAW')           NOT NULL,
-                              amount            DECIMAL(15,2)                         NOT NULL CHECK (amount > 0.00),
-                              balance_after     DECIMAL(15,2)                         NOT NULL,
-                              FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number) ON DELETE CASCADE,
-                              FOREIGN KEY (balance_after) REFERENCES saving_accounts(balance) ON DELETE CASCADE
-
-
-);
+                              id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                              account_number VARCHAR(20) NOT NULL,
+                              amount DECIMAL(19,4) NOT NULL,
+                              transaction_type ENUM('DEPOSIT', 'WITHDRAWAL', 'TRANSFER', 'FEE', 'INTEREST') NOT NULL,
+                              description VARCHAR(255),
+                              reference_number VARCHAR(50),
+                              created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number),
+                              INDEX idx_account_number (account_number),
+                              INDEX idx_created_at (created_at)
+) ENGINE=InnoDB;;
 
 CREATE TABLE audit_logs (
                             log_id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-                            actor_user_id  CHAR(36)                         NOT NULL,  -- who did the action
+                            actor_user_id  CHAR(36)                         NOT NULL,
                             action_type    ENUM('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT') NOT NULL,
                             entity_type    ENUM('CUSTOMER', 'ACCOUNT', 'TRANSACTION', 'USER')    NOT NULL,
-                            entity_id      CHAR(36),  -- ID of the affected record (nullable for LOGIN/LOGOUT)
+                            entity_id      CHAR(36),
                             description    TEXT,
-                            ip_address     VARCHAR(45),   -- support for IPv6
+                            ip_address     VARCHAR(45),
                             created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
                             INDEX idx_actor_user_id (actor_user_id),

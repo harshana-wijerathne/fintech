@@ -1,15 +1,23 @@
 package site.wijerathne.harshana.fintech.repo;
 
+import com.zaxxer.hikari.HikariDataSource;
 import site.wijerathne.harshana.fintech.dto.AuditLogDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 public class AuditLogRepo {
-    public void saveAuditLog(AuditLogDTO logDTO,Connection connection) {
+
+    HikariDataSource connectionPool;
+    public AuditLogRepo(HikariDataSource connectionPool) {
+        this.connectionPool = connectionPool;
+    }
+
+    public void saveAuditLog(AuditLogDTO logDTO) {
         String sql = "INSERT INTO audit_logs (actor_user_id, action_type, entity_type, entity_id, description, ip_address) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (
+                Connection connection = connectionPool.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(sql);
         ) {
             stmt.setString(1, logDTO.getActorUserId());

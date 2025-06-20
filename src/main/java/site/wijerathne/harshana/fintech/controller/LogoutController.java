@@ -13,15 +13,13 @@ import java.sql.SQLException;
 @WebServlet("/logout")
 public class LogoutController extends HttpServlet {
 
-    private final AuditLogRepo auditLogRepo = new AuditLogRepo();
+    private final AuditLogRepo auditLogRepo = new AuditLogRepo((HikariDataSource)getServletContext().getAttribute("DATA_SOURCE"));
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws  IOException {
         HttpSession session = req.getSession(false);
-        HikariDataSource dataSource = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
         if (session != null) {
             User user = (User) session.getAttribute("username");
-
             if (user != null) {
                 AuditLogDTO log = new AuditLogDTO(
                         user.getUserId(),
@@ -31,16 +29,10 @@ public class LogoutController extends HttpServlet {
                         "User logged out",
                         req.getRemoteAddr()
                 );
-                try {
-                    auditLogRepo.saveAuditLog(log,dataSource.getConnection());
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+                auditLogRepo.saveAuditLog(log);
             }
-
             session.invalidate();
         }
-
         resp.sendRedirect("pages/login.jsp");
     }
 }
