@@ -74,6 +74,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             ModelMapper modelMapper = new ModelMapper();
             Transaction transactionReq = modelMapper.map(requestDTO, Transaction.class);
+            transactionReq.setReferenceNumber(UUID.randomUUID().toString());
 
             Transaction updatedAccount = transactionRepo.withdraw(transactionReq);
             auditLogger.saveAuditLog(new AuditLogDTO(transactionReq.getAccountNumber(), "UPDATE", "ACCOUNT","WITHDRAW", "Withdrawal completed",null));
@@ -99,6 +100,8 @@ public class TransactionServiceImpl implements TransactionService {
         try {
             validatePaginationParameters(page, pageSize);
             Page<Transaction> transactions = transactionRepo.getAllTransactions(page, pageSize);
+            ModelMapper modelMapper = new ModelMapper();
+            modelMapper.map(transactions, TransactionResponseDTO.class);
             return mapToResponsePage(transactions);
         } catch (DataAccessException e) {
             logger.log(Level.SEVERE, "Error retrieving all transactions", e);
@@ -151,6 +154,9 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+
+    /*---------------Supportive Functions---------------*/
+
     private Page<TransactionResponseDTO> mapToResponsePage(Page<Transaction> transactionPage) {
         List<TransactionResponseDTO> content = transactionPage.getContent().stream()
                 .map(this::mapToResponseDTO)
@@ -173,6 +179,9 @@ public class TransactionServiceImpl implements TransactionService {
         response.setTransactionType(transaction.getTransactionType());
         response.setDescription(transaction.getDescription());
         response.setCreatedAt(transaction.getCreatedAt());
+        response.setReferenceNumber(transaction.getReferenceNumber());
+        response.setBalance(transaction.getBalance());
+        System.out.println(response.toString());
         return response;
     }
 

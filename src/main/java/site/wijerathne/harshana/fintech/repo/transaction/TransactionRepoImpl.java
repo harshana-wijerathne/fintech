@@ -1,6 +1,7 @@
 package site.wijerathne.harshana.fintech.repo.transaction;
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import site.wijerathne.harshana.fintech.exception.DataAccessException;
 import site.wijerathne.harshana.fintech.exception.transaction.InsufficientFundsException;
 import site.wijerathne.harshana.fintech.model.Transaction;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Slf4j
 public class TransactionRepoImpl implements TransactionRepo {
     private static final Logger logger = Logger.getLogger(TransactionRepoImpl.class.getName());
     private final HikariDataSource connectionPool;
@@ -140,7 +142,7 @@ public class TransactionRepoImpl implements TransactionRepo {
                 try (PreparedStatement txStmt = connection.prepareStatement(insertTxSql)) {
                     txStmt.setString(1, transaction.getAccountNumber());
                     txStmt.setBigDecimal(2, transaction.getAmount());
-                    txStmt.setBigDecimal(3, transaction.getBalance().add(transaction.getAmount()));
+                    txStmt.setBigDecimal(3, transaction.getBalance().subtract(transaction.getAmount()));
                     txStmt.setString(4, transaction.getDescription());
                     txStmt.setString(5, transaction.getReferenceNumber());
 
@@ -341,8 +343,10 @@ public class TransactionRepoImpl implements TransactionRepo {
         transaction.setTransactionId(rs.getString("id"));
         transaction.setAccountNumber(rs.getString("account_number"));
         transaction.setAmount(rs.getBigDecimal("amount"));
+        transaction.setBalance(rs.getBigDecimal("new_balance"));
         transaction.setTransactionType(rs.getString("transaction_type"));
         transaction.setDescription(rs.getString("description"));
+        transaction.setReferenceNumber(rs.getString("reference_number"));
         transaction.setCreatedAt(rs.getTimestamp("created_at"));
         return transaction;
     }

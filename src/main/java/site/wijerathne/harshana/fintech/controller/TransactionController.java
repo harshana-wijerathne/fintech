@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@WebServlet("/admin/transactions")
+@WebServlet("/admin/transactions/*")
 public class TransactionController extends HttpServlet {
     private static final Logger logger = Logger.getLogger(TransactionController.class.getName());
     private TransactionService transactionService;
@@ -91,10 +91,8 @@ public class TransactionController extends HttpServlet {
 
             validateTransactionRequest(request);
 
-            // Process withdrawal
             TransactionResponseDTO response = transactionService.withdraw(request);
 
-            // Send success response
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write(gson.toJson(response));
             logger.log(Level.INFO, "Withdrawal processed successfully for account: " + request.getAccountNumber());
@@ -123,9 +121,9 @@ public class TransactionController extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
 
         try {
-            String accountNumber = req.getParameter("accountNumber");
-            String fromDate = req.getParameter("from");
-            String toDate = req.getParameter("to");
+            String pathInfo = req.getPathInfo();
+            String fromDateParam = req.getParameter("fromdate");
+            String toDateParam = req.getParameter("todate");
 
             // Parse pagination parameters with defaults
             int page = parseIntParameter(req, "page", 1);
@@ -133,27 +131,31 @@ public class TransactionController extends HttpServlet {
 
             Page<TransactionResponseDTO> transactions;
 
-            if (accountNumber != null && !accountNumber.isEmpty()) {
-                if (fromDate != null && toDate != null) {
-                    // Date range query for specific account
-                    Date startDate = Date.valueOf(fromDate);
-                    Date endDate = Date.valueOf(toDate);
+            if (pathInfo == null || pathInfo.equals("/")) {
+                if (fromDateParam != null && toDateParam != null) {
+                    Date startDate = Date.valueOf(fromDateParam);
+                    Date endDate = Date.valueOf(toDateParam);
                     transactions = transactionService.getTransactionsByDateRange(
-                            accountNumber, startDate, endDate, page, pageSize);
+                            null, startDate, endDate, page, pageSize);
                 } else {
-                    // Account-specific query
-                    transactions = transactionService.getTransactionsByAccountNumber(
-                            accountNumber, page, pageSize);
+                    transactions = transactionService.getAllTransactions(page, pageSize);
                 }
-            } else if (fromDate != null && toDate != null) {
-                // Date range query for all accounts
-                Date startDate = Date.valueOf(fromDate);
-                Date endDate = Date.valueOf(toDate);
-                transactions = transactionService.getTransactionsByDateRange(
-                        null, startDate, endDate, page, pageSize);
             } else {
-                // All transactions
-                transactions = transactionService.getAllTransactions(page, pageSize);
+                String[] pathParts = pathInfo.split("/");
+                if (pathParts.length == 2) {
+                    String accountNumber = pathParts[1];
+                    if (fromDateParam != null && toDateParam != null) {
+                        Date startDate = Date.valueOf(fromDateParam);
+                        Date endDate = Date.valueOf(toDateParam);
+                        transactions = transactionService.getTransactionsByDateRange(
+                                accountNumber, startDate, endDate, page, pageSize);
+                    } else {
+                        transactions = transactionService.getTransactionsByAccountNumber(
+                                accountNumber, page, pageSize);
+                    }
+                } else {
+                    throw new IllegalArgumentException("Invalid URL pattern");
+                }
             }
 
             resp.setStatus(HttpServletResponse.SC_OK);
@@ -161,14 +163,14 @@ public class TransactionController extends HttpServlet {
 
         } catch (AccountNotFoundException e) {
             sendError(resp, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
-        } catch (InvalidDateRangeException e) {
+        } catch (IllegalArgumentException | InvalidDateRangeException e) {
             sendError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error retrieving transactions", e);
             sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving transactions");
         }
     }
 
-    // Helper method to parse integer parameters with defaults
     private int parseIntParameter(HttpServletRequest req, String paramName, int defaultValue) {
         String paramValue = req.getParameter(paramName);
         if (paramValue != null && !paramValue.isEmpty()) {

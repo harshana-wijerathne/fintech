@@ -3,6 +3,7 @@ package site.wijerathne.harshana.fintech.dto.transaction;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 
 @Setter
 @Getter
+@ToString
 public class TransactionResponseDTO {
     private String transactionId;
     private String accountNumber;
@@ -19,5 +21,7 @@ public class TransactionResponseDTO {
     private String description;
     private String referenceNumber;
     private Timestamp createdAt;
+
+
 
 }

@@ -44,7 +44,7 @@ CREATE TABLE transactions (
                               description VARCHAR(255),
                               reference_number VARCHAR(50),
                               created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                              FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number),
+                              FOREIGN KEY (account_number) REFERENCES saving_accounts(account_number) ON DELETE CASCADE,
                               INDEX idx_account_number (account_number),
                               INDEX idx_created_at (created_at)
 );
