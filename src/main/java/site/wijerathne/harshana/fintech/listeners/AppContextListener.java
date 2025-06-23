@@ -43,7 +43,7 @@ public class AppContextListener implements ServletContextListener {
             HikariDataSource dataSource = new HikariDataSource(config);
 
             sce.getServletContext().setAttribute("DATA_SOURCE", dataSource);
-
+//            SqlScriptRunner.runScript(dataSource.getConnection() ,"schema.sql","init_data.sql" );
 
         }catch (IOException e){
             throw new RuntimeException(e);

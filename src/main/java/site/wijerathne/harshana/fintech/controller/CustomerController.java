@@ -194,7 +194,10 @@ public class CustomerController extends HttpServlet {
             resp.getWriter().write(gson.toJson(savedCustomer));
             logger.log(Level.INFO, "Created new customer with ID: " + savedCustomer.getCustomerId());
 
-        } catch (JsonSyntaxException e) {
+        }catch (CustomerAlreadyExisException e){
+            logger.log(Level.WARNING, "NIC is already exist", e);
+            sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "NIC is already exist");
+        }catch (JsonSyntaxException e) {
             logger.log(Level.WARNING, "Invalid JSON format", e);
             sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid customer data format");
         } catch (CustomerCreationException e) {

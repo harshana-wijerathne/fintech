@@ -13,7 +13,13 @@ import java.sql.SQLException;
 @WebServlet("/logout")
 public class LogoutController extends HttpServlet {
 
-    private final AuditLogRepo auditLogRepo = new AuditLogRepo((HikariDataSource)getServletContext().getAttribute("DATA_SOURCE"));
+    private AuditLogRepo auditLogRepo;
+
+    @Override
+    public void init() {
+        HikariDataSource dataSource = (HikariDataSource) getServletContext().getAttribute("DATA_SOURCE");
+        auditLogRepo = new AuditLogRepo(dataSource);
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws  IOException {

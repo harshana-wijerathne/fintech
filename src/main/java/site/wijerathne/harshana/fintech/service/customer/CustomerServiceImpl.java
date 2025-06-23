@@ -78,6 +78,9 @@ public class CustomerServiceImpl implements CustomerService {
             }
 
             Customer customer = dtoConverter.convertToCustomerModel(customerDTO);
+
+            boolean customerExist = customerRepo.existsCustomer(customerDTO.getNicPassport());
+            if(customerExist) throw new CustomerAlreadyExisException("Customer already exists");
             Customer createdCustomer = customerRepo.saveCustomer(customer);
 
             // Log audit
@@ -92,7 +95,11 @@ public class CustomerServiceImpl implements CustomerService {
             auditLogRepo.saveAuditLog(auditLog);
 
             return dtoConverter.convertToCustomerDTO(createdCustomer);
-        } catch (SQLException e) {
+        }catch (CustomerAlreadyExisException e){
+            logger.log(Level.WARNING, "NIC is already exist", e);
+            throw new CustomerAlreadyExisException("NIC is already exist");
+        }
+        catch (SQLException e) {
             logger.log(Level.SEVERE, "Error creating customer", e);
             throw new CustomerCreationException("Error creating customer", e);
         } catch (Exception e) {

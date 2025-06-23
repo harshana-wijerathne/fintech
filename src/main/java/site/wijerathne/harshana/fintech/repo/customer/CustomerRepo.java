@@ -79,8 +79,8 @@ public class CustomerRepo {
             pstmt.setString(1, customerId);
 
             try (ResultSet rs = pstmt.executeQuery()) {
+                Customer customer = new Customer();
                 if (rs.next()) {
-                    Customer customer = new Customer();
                     customer.setCustomerId(rs.getString("customer_id"));
                     customer.setFullName(rs.getString("full_name"));
                     customer.setNicPassport(rs.getString("nic_passport"));
@@ -90,9 +90,8 @@ public class CustomerRepo {
                     customer.setEmail(rs.getString("email"));
                     customer.setCreatedAt(rs.getTimestamp("created_at"));
                     customer.setUpdatedAt(rs.getTimestamp("updated_at"));
-
-                    return customer;
                 }
+                return customer;
             }
 
 
@@ -100,8 +99,26 @@ public class CustomerRepo {
             logger.log(Level.SEVERE, "Error fetching customer by ID", e);
             throw new DataReadException(e);
         }
-        return null;
+
     }
+    public boolean existsCustomer(String nicPassport) {
+        String sql = "SELECT 1 FROM customers WHERE nic_passport = ? LIMIT 1";
+
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setString(1, nicPassport);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking if customer exists with NIC/Passport: " + nicPassport, e);
+            throw new DataReadException(e);
+        }
+    }
+
 
     public List<Customer> findCustomersByNameOrNIC(String searchTerm) throws SQLException {
         List<Customer> customers = new ArrayList<>();
