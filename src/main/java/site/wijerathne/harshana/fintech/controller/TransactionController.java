@@ -3,6 +3,7 @@ package site.wijerathne.harshana.fintech.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import site.wijerathne.harshana.fintech.dto.transaction.TransactionRequestDTO;
 import site.wijerathne.harshana.fintech.dto.transaction.TransactionResponseDTO;
 import site.wijerathne.harshana.fintech.exception.transaction.AccountNotFoundException;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Slf4j
 @WebServlet("/admin/transactions/*")
 public class TransactionController extends HttpServlet {
     private static final Logger logger = Logger.getLogger(TransactionController.class.getName());
@@ -61,7 +63,6 @@ public class TransactionController extends HttpServlet {
             TransactionRequestDTO request = parseRequest(req);
             validateTransactionRequest(request);
             TransactionResponseDTO response = transactionService.deposit(request , req);
-            // Send success response
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write(gson.toJson(response));
             logger.log(Level.INFO, "Deposit processed successfully for account: " + request.getAccountNumber());
@@ -185,6 +186,7 @@ public class TransactionController extends HttpServlet {
 
     private TransactionRequestDTO parseRequest(HttpServletRequest req) throws IOException {
         try (BufferedReader reader = req.getReader()) {
+            System.out.println(reader);
             return gson.fromJson(reader, TransactionRequestDTO.class);
         }
     }

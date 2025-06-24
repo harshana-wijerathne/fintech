@@ -106,7 +106,7 @@ document.getElementById('downloadPdfBtn').addEventListener('click', function () 
 });
 
 function showTransactionDetails(transactionData, isDeposit = true) {
-    // Format currency
+
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-LK', {
             style: 'currency',
@@ -119,22 +119,23 @@ function showTransactionDetails(transactionData, isDeposit = true) {
         ? 'modal-header bg-success text-white'
         : 'modal-header bg-danger text-white';
 
-    // Set transaction type badge
+
     const typeBadge = document.getElementById('transactionTypeBadge');
     typeBadge.className = isDeposit
         ? 'badge fs-6 bg-success bg-opacity-10 text-success'
         : 'badge fs-6 bg-danger bg-opacity-10 text-danger';
     typeBadge.textContent = isDeposit ? 'Deposit' : 'Withdrawal';
 
-    // Format and set values
+
     document.getElementById('transactionAmount').textContent = formatCurrency(transactionData.amount);
     document.getElementById('transactionAccountNumber').textContent = transactionData.accountNumber;
-    document.getElementById('transactionReference').textContent = transactionData.referenceNumber.substring(0, 8) + '...';
+    document.getElementById('transactionReference').textContent = transactionData.referenceNumber.substring(25,36 );
     document.getElementById('transactionDescription').textContent = transactionData.description || 'No description';
     document.getElementById('transactionBalance').textContent = formatCurrency(transactionData.balance);
     document.getElementById('transactionId').textContent = transactionData.referenceNumber;
+    document.getElementById('transactionId').textContent = transactionData.referenceNumber.substring(25,36 )
 
-    // Set current date/time for receipt
+
     document.getElementById('transactionDateTime').textContent = new Date().toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -143,7 +144,7 @@ function showTransactionDetails(transactionData, isDeposit = true) {
         minute: '2-digit'
     });
 
-    // Show the modal
+
     const modal = new bootstrap.Modal(document.getElementById('transactionDetailsModal'));
     modal.show();
 }
@@ -166,30 +167,98 @@ document.getElementById("depositForm").addEventListener("submit", function (e) {
     e.preventDefault();
     const form = this;
     const formData = new FormData(form);
-    console.log(formData)
 
+    // Convert FormData to a plain object
+    const data = {};
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
 
-    fetch("/admin/saving-accounts", {method: 'POST', body: JSON.stringify(formData)})
-        .then(result => result.json())
+    // Convert amount to number (since FormData stores all values as strings)
+    data.amount = parseFloat(data.amount);
+
+    fetch("/admin/transactions", {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(result => {
             showTransactionDetails(result);
-        }).catch(err => {
-        showNotification("Transaction Failed", "error")
-    })
+            showNotification("Deposit successful", "success");
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showNotification("Transaction Failed", "error");
+        });
+});
 
-})
+document.getElementById("withdrawForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const form = this;
+    const formData = new FormData(form);
+
+    const data = {};
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+
+    // Convert amount to number
+    data.amount = parseFloat(data.amount);
+
+    fetch("/admin/transactions", {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    })
+        .then(async response => {
+            if (!response.ok) {
+                let errorMsg = 'Transaction failed';
+                try {
+                    const errorResult = await response.json();
+                    errorMsg = errorResult.message || errorResult.error || errorMsg;
+                } catch (e) {
+                    // If we can't parse JSON, use status text
+                    errorMsg = response.statusText || errorMsg;
+                }
+                throw new Error(errorMsg);
+            }
+
+            try {
+                const result = await response.json();
+                showNotification("Withdraw successful", "success");
+                showTransactionDetails(result,false);
+            } catch (e) {
+                showNotification("Withdraw Failed", "error");
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showNotification(err.message || "Transaction Failed", "error");
+        });
+});
 
 function withdraw() {
-    showTransactionDetails({
-        accountNumber: "70042300000138888888888888888888888888888",
-        amount: 5000,
-        balance: 9986000.00,
-        description: "ATM Withdrawal",
-        referenceNumber: "abc74167-2b3e-4628-9749-1a05e1ed69fc"
-    }, false);
+    // showTransactionDetails({
+    //     accountNumber: "7004230000013",
+    //     amount: 5000,
+    //     balance: 9986000.00,
+    //     description: "ATM Withdrawal",
+    //     referenceNumber: "abc74167-2b3e-4628-9749-1a05e1ed69fc"
+    // }, false);
 }
 
 window.getAllAccountsForFormSelect = async (page , pageSize) => {
+    console.log("getAllAccountsForFormSelect")
     if (page == null) page = 1;
     if (pageSize == null) pageSize = 1000;
 
@@ -200,28 +269,32 @@ window.getAllAccountsForFormSelect = async (page , pageSize) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const customers = await response.json(); // Parse the JSON response
-        const selectField = document.getElementById("account-select");
-        if (customers && customers.length > 0) {
-            let innerHtml = "";
-            for (const customer of customers) {
+        const customers = await response.json();
+        const selectFieldWITH = document.getElementById("withdrawAccountSelect");
+        const selectFieldDEP = document.getElementById("depositAccountFormSelect");
+        const selectFieldHistory = document.getElementById("historyAccount");
+        if (customers && customers.content.length > 0) {
+            let innerHtml = `<option>Select Account...</option>`;
+            for (const customer of customers.content) {
                 pageSize = customers.length;
-                innerHtml += `<option value="${customer.customerId}"> ${customer.fullName} | ${customer.nicPassport}</option>`;
+                innerHtml += `<option value="${customer.accountNumber}"> ${customer.fullName} | ${customer.accountNumber}</option>`;
             }
 
-            selectField.innerHTML = innerHtml;
+            selectFieldWITH.innerHTML = innerHtml;
+            selectFieldDEP.innerHTML = innerHtml;
+            selectFieldHistory.innerHTML = innerHtml;
         } else {
-            tableBody.innerHTML = `<option>No customers found</option>`;
+            selectFieldWITH.innerHTML = `<option>No customers found</option>`;
+            selectFieldDEP.innerHTML = `<option>No customers found</option>`;
+            selectFieldHistory.innerHTML = `<option>Please Select an account number</option>`;
         }
     } catch (error) {
         console.error("Error fetching customers:", error);
-        document.getElementById("customersTableBody").innerHTML =
-            `<tr><td colspan="5">Error loading customer data</td></tr>`;
     }
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("log")
+    console.log("conected")
     let accounts = [];
 
     window.getAccountDetails = function() {
@@ -322,8 +395,133 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize on page load
-    getAccountDetails();
+    getAllAccountsForFormSelect();
+    loadTransactionHistory('');
 });
+
+let allAccountTransactions = [];
+async function loadAndFilterTransactions() {
+    const accountNumber = document.getElementById('historyAccount').value;
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    const transactionHistoryBody = document.getElementById('transactionHistoryBody');
+
+    // Clear table
+    transactionHistoryBody.innerHTML = '';
+
+    if (!accountNumber) {
+        transactionHistoryBody.innerHTML = '<tr><td colspan="5" class="text-center">Please select an account number</td></tr>';
+        return;
+    }
+
+    try {
+
+        transactionHistoryBody.innerHTML = '<tr><td colspan="5" class="text-center">Loading transactions...</td></tr>';
+
+        if (allAccountTransactions.length === 0) {
+            const accountResponse = await fetch(`/admin/transactions/${accountNumber}`);
+            if (!accountResponse.ok) throw new Error('Failed to load account transactions');
+            const accountData = await accountResponse.json();
+
+            allAccountTransactions = Array.isArray(accountData) ? accountData :
+                accountData.content ? accountData.content :
+                    accountData.transactions ? accountData.transactions :
+                        [];
+        }
+
+        // Step 2: Get date-filtered transactions
+        let dateFilteredTransactions = [];
+        if (fromDate || toDate) {
+            let dateUrl = '/admin/transactions?';
+            if (fromDate) dateUrl += `fromdate=${fromDate}&`;
+            if (toDate) dateUrl += `todate=${toDate}`;
+
+            const dateResponse = await fetch(dateUrl);
+            if (!dateResponse.ok) throw new Error('Failed to load date-filtered transactions');
+            const dateData = await dateResponse.json();
+
+            dateFilteredTransactions = Array.isArray(dateData) ? dateData :
+                dateData.content ? dateData.content :
+                    dateData.transactions ? dateData.transactions :
+                        [];
+        }
+
+        let filteredTransactions = allAccountTransactions;
+
+        if (dateFilteredTransactions.length > 0) {
+
+            const dateFilteredIds = new Set(dateFilteredTransactions.map(t => t.id));
+
+            filteredTransactions = allAccountTransactions.filter(t =>
+                dateFilteredIds.has(t.id)
+            );
+        }
+
+        // Display results
+        if (filteredTransactions.length === 0) {
+            transactionHistoryBody.innerHTML = '<tr><td colspan="5" class="text-center">No matching transactions found</td></tr>';
+            return;
+        }
+
+        renderTransactions(filteredTransactions);
+
+    } catch (error) {
+        console.error('Error:', error);
+        transactionHistoryBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error: ${error.message}</td></tr>`;
+    }
+}
+
+function renderTransactions(transactions) {
+    const transactionHistoryBody = document.getElementById('transactionHistoryBody');
+    if (!Array.isArray(transactions)) {
+        console.error('Transactions is not an array:', transactions);
+        transactionHistoryBody.innerHTML = '<tr><td colspan="5" class="text-center">Invalid transaction data</td></tr>';
+        return;
+    }
+
+    let html = '';
+
+    transactions.forEach(transaction => {
+        // Ensure transaction has required properties
+        if (!transaction || !transaction.transactionType || !transaction.amount) {
+            console.warn('Invalid transaction:', transaction);
+            return;
+        }
+
+        const typeClass = transaction.transactionType.toLowerCase() === 'deposit'
+            ? 'transaction-deposit'
+            : 'transaction-withdrawal';
+
+        const amountSign = transaction.transactionType.toLowerCase() === 'deposit' ? '+' : '-';
+        const formattedAmount = `${amountSign}LKR${Math.abs(transaction.amount).toFixed(2)}`;
+
+        html += `
+            <tr>
+                <td>${transaction.createdAt ? transaction.createdAt : 'N/A'}</td>
+                <td>${transaction.accountNumber || 'N/A'}</td>
+                <td class="${typeClass}">${transaction.transactionType || 'N/A'}</td>
+                <td class="currency">${formattedAmount}</td>
+                <td class="currency">LKR${(transaction.balance || 0).toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    transactionHistoryBody.innerHTML = html || '<tr><td colspan="5" class="text-center">No transactions to display</td></tr>';
+}
+
+document.getElementById('historyAccount').addEventListener('change', async function() {
+    allAccountTransactions = [];
+    await loadAndFilterTransactions();
+});
+
+document.getElementById('fromDate').addEventListener('change', loadAndFilterTransactions);
+
+document.getElementById('toDate').addEventListener('change', loadAndFilterTransactions);
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadAndFilterTransactions();
+});
+
 
 
 

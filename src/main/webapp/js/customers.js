@@ -389,7 +389,6 @@ window.displayResults=(customers)=> {
 }
 
 window.dummyData = () =>{
-    alert("clicked")
     const currentDate = new Date();
     const dobDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
     const dobString = dobDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD

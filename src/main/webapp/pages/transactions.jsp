@@ -14,9 +14,8 @@
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
       <link rel="stylesheet" href="../css/transaction.css">
+      <link rel="stylesheet" href="../css/notification.css">
       <link rel="stylesheet" href="../css/main.css">
-
-      <script src="../js/transaction.js" defer></script>
   </head>
   <body>
   <!-- Sidebar -->
@@ -84,7 +83,7 @@
                   <form id="depositForm" class="p-3">
                       <div class="mb-3">
                           <label for="depositAccount" class="form-label">Account Number</label>
-                          <select class="form-select" id="depositAccount" name="accountNumber" required>
+                          <select class="form-select" id="depositAccountFormSelect" name="accountNumber" required>
                               <option value="">Select account...</option>
                               <option value="SAV001234567">SAV001234567 - John Smith</option>
                               <option value="SAV001234568">SAV001234568 - Sarah Johnson</option>
@@ -99,6 +98,12 @@
                                      step="0.01" required>
                           </div>
                       </div>
+
+                      <div class="mb-3">
+                          <label for="depositDate" class="form-label">Description</label>
+                          <input type="text" class="form-control" id="depositDate" name="description" required>
+                      </div>
+
                       <div class="d-flex justify-content-end">
                           <button onclick="deposit()" type="submit" class="btn btn-success">
                               <i class="bi bi-plus-circle me-1"></i> Deposit
@@ -115,7 +120,7 @@
                   <form id="withdrawForm" class="p-3">
                       <div class="mb-3">
                           <label for="withdrawAccount" class="form-label">Account Number</label>
-                          <select class="form-select" id="withdrawAccount" name="accountNumber" required>
+                          <select class="form-select" id="withdrawAccountSelect" name="accountNumber" required>
                               <option value="">Select account...</option>
                               <option value="SAV001234567">SAV001234567 - John Smith</option>
                               <option value="SAV001234568">SAV001234568 - Sarah Johnson</option>
@@ -129,6 +134,10 @@
                               <input type="number" class="form-control" id="withdrawAmount" name="amount" min="1"
                                      step="0.01" required>
                           </div>
+                      </div>
+                      <div class="mb-3">
+                          <label for="depositDate" class="form-label">Description</label>
+                          <input type="text" class="form-control" id="depositDate" name="description" required>
                       </div>
                       <div class="d-flex justify-content-end">
                           <button onclick="withdraw()" type="submit" class="btn btn-danger">
@@ -144,8 +153,7 @@
               <div class="card-header">
                   <h3 class="card-title"><i class="bi bi-clock-history"></i> Transaction History</h3>
                   <div class="search-bar">
-                      <i class="bi bi-search"></i>
-                      <input type="text" class="form-control" placeholder="Search transactions..." id="transactionSearch">
+<%--                      <label for="transactionSearch"></label><input type="text" class="form-control" placeholder="Search transactions..." id="transactionSearch">--%>
                   </div>
               </div>
               <div class="card-body">
@@ -238,13 +246,13 @@
                   <nav>
                       <ul class="pagination justify-content-center mb-0">
                           <li class="page-item disabled">
-                              <a class="page-link" href="#" tabindex="-1">Previous</a>
+                              <a class="page-link"  tabindex="-1">Previous</a>
                           </li>
-                          <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                          <li class="page-item"><a class="page-link" href="#">2</a></li>
-                          <li class="page-item"><a class="page-link" href="#">3</a></li>
+                          <li class="page-item active"><a class="page-link">1</a></li>
+                          <li class="page-item"><a class="page-link" >2</a></li>
+                          <li class="page-item"><a class="page-link" >3</a></li>
                           <li class="page-item">
-                              <a class="page-link" href="#">Next</a>
+                              <a class="page-link" >Next</a>
                           </li>
                       </ul>
                   </nav>
@@ -386,5 +394,6 @@
   <script src="${pageContext.request.contextPath}/js/notification.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="../js/transaction.js"></script>
   </body>
 </html>

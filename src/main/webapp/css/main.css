@@ -15,7 +15,6 @@ body {
     background-color: #f5f7fa;
     color: var(--dark);
 }
-
 /* Sidebar styling */
 .sidebar {
     background: linear-gradient(180deg, var(--primary) 0%, #1a365d 100%);
