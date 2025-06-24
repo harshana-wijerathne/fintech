@@ -35,10 +35,6 @@ public class AppContextListener implements ServletContextListener {
 
             config.setMaximumPoolSize(10);
             config.setMinimumIdle(5);
-            config.setIdleTimeout(600000);
-            config.setConnectionTimeout(30000);
-            config.setMaxLifetime(1800000);
-            config.setLeakDetectionThreshold(30000);
             config.setConnectionTestQuery("SELECT 1");
             HikariDataSource dataSource = new HikariDataSource(config);
 

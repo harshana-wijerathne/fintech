@@ -41,6 +41,7 @@ public class LoginController extends HttpServlet {
             if (authenticatedUser != null) {
                 HttpSession session = req.getSession();
                 session.setAttribute("username", authenticatedUser);
+                session.setMaxInactiveInterval(30*60);
                 resp.sendRedirect("/");
             } else {
                 resp.sendRedirect("pages/login.jsp?error=invalid");

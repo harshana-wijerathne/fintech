@@ -108,6 +108,7 @@ public class TransactionRepoImpl implements TransactionRepo {
 
         try (Connection connection = connectionPool.getConnection()) {
             connection.setAutoCommit(false);
+            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
             try {
                 try (PreparedStatement selectStmt = connection.prepareStatement(selectSql)) {
@@ -124,8 +125,18 @@ public class TransactionRepoImpl implements TransactionRepo {
                     transaction.setAccountNumber(transaction.getAccountNumber());
                     transaction.setBalance(currentBalance);
                 }
+                // 2. Record transaction
+                try (PreparedStatement txStmt = connection.prepareStatement(insertTxSql)) {
+                    txStmt.setString(1, transaction.getAccountNumber());
+                    txStmt.setBigDecimal(2, transaction.getAmount());
+                    txStmt.setBigDecimal(3, transaction.getBalance().subtract(transaction.getAmount()));
+                    txStmt.setString(4, transaction.getDescription());
+                    txStmt.setString(5, transaction.getReferenceNumber());
 
-                // 2. Update account balance with balance check
+                    txStmt.executeUpdate();
+                }
+
+                // 3. Update account balance with balance check
                 try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
                     updateStmt.setBigDecimal(1, transaction.getAmount());
                     updateStmt.setTimestamp(2, Timestamp.from(Instant.now()));
@@ -138,16 +149,8 @@ public class TransactionRepoImpl implements TransactionRepo {
                     }
                 }
 
-                // 3. Record transaction
-                try (PreparedStatement txStmt = connection.prepareStatement(insertTxSql)) {
-                    txStmt.setString(1, transaction.getAccountNumber());
-                    txStmt.setBigDecimal(2, transaction.getAmount());
-                    txStmt.setBigDecimal(3, transaction.getBalance().subtract(transaction.getAmount()));
-                    txStmt.setString(4, transaction.getDescription());
-                    txStmt.setString(5, transaction.getReferenceNumber());
 
-                    txStmt.executeUpdate();
-                }
+
 
                 // 4. Get updated balance
                 try (PreparedStatement selectStmt = connection.prepareStatement(
