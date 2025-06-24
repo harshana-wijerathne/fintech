@@ -261,11 +261,6 @@ window.closeModalDelete = function() {
 }
 
 /*-------------------------------------------------------DELETE / PAGINATION / SEARCH --------------------------------------------------*/
-const hi = ()=>{
-    alert("hi")
-}
-
-
 
 window.deleteCustomer = async (id)=>{
     console.log(id)

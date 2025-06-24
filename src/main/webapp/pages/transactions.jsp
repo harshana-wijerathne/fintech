@@ -99,10 +99,6 @@
                                      step="0.01" required>
                           </div>
                       </div>
-<%--                      <div class="mb-3">--%>
-<%--                          <label for="depositDate" class="form-label">Date</label>--%>
-<%--                          <input type="date" class="form-control" id="depositDate" name="date" required>--%>
-<%--                      </div>--%>
                       <div class="d-flex justify-content-end">
                           <button onclick="deposit()" type="submit" class="btn btn-success">
                               <i class="bi bi-plus-circle me-1"></i> Deposit
@@ -134,10 +130,6 @@
                                      step="0.01" required>
                           </div>
                       </div>
-<%--                      <div class="mb-3">--%>
-<%--                          <label for="withdrawDate" class="form-label">Date</label>--%>
-<%--                          <input type="date" class="form-control" id="withdrawDate" name="date" required>--%>
-<%--                      </div>--%>
                       <div class="d-flex justify-content-end">
                           <button onclick="withdraw()" type="submit" class="btn btn-danger">
                               <i class="bi bi-dash-circle me-1"></i> Withdraw

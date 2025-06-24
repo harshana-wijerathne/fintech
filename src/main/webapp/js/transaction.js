@@ -100,7 +100,6 @@ function downloadPDF() {
     doc.save(`Transaction_Report.pdf`);
 }
 
-// Direct download button
 document.getElementById('downloadPdfBtn').addEventListener('click', function () {
     generateReport();
     downloadPDF();
@@ -149,7 +148,6 @@ function showTransactionDetails(transactionData, isDeposit = true) {
     modal.show();
 }
 
-// Print receipt function
 function printTransactionReceipt() {
     showNotification('Receipt sent to printer', 'success');
 }
@@ -183,7 +181,7 @@ document.getElementById("depositForm").addEventListener("submit", function (e) {
 
 function withdraw() {
     showTransactionDetails({
-        accountNumber: "70042300000138",
+        accountNumber: "70042300000138888888888888888888888888888",
         amount: 5000,
         balance: 9986000.00,
         description: "ATM Withdrawal",
@@ -191,8 +189,39 @@ function withdraw() {
     }, false);
 }
 
+window.getAllAccountsForFormSelect = async (page , pageSize) => {
+    if (page == null) page = 1;
+    if (pageSize == null) pageSize = 1000;
+
+    try {
+        const response = await fetch("/admin/saving-accounts?page=" + page + "&pageSize=" + pageSize);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const customers = await response.json(); // Parse the JSON response
+        const selectField = document.getElementById("account-select");
+        if (customers && customers.length > 0) {
+            let innerHtml = "";
+            for (const customer of customers) {
+                pageSize = customers.length;
+                innerHtml += `<option value="${customer.customerId}"> ${customer.fullName} | ${customer.nicPassport}</option>`;
+            }
+
+            selectField.innerHTML = innerHtml;
+        } else {
+            tableBody.innerHTML = `<option>No customers found</option>`;
+        }
+    } catch (error) {
+        console.error("Error fetching customers:", error);
+        document.getElementById("customersTableBody").innerHTML =
+            `<tr><td colspan="5">Error loading customer data</td></tr>`;
+    }
+};
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("log")
     let accounts = [];
 
     window.getAccountDetails = function() {
@@ -295,8 +324,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize on page load
     getAccountDetails();
 });
-
-
 
 
 

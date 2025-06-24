@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     getAllCustomersForFormSelect();
     getAllAccounts()
-
+    console.log("contected")
 });
 
 
@@ -20,31 +20,31 @@ document.getElementById("accountForm").addEventListener('submit', async function
 
     console.log(accountData)
 
-try{
-    const response = await fetch('/admin/saving-accounts', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-        },
-        body: JSON.stringify(accountData)
-    });
+    try{
+        const response = await fetch('/admin/saving-accounts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(accountData)
+        });
 
-    const data = await response.json();
-    showAccountDetails(data);
+        const data = await response.json();
+        showAccountDetails(data);
 
-    if(!response.ok){
-        showNotification('Account registered Failed!', 'warning');
-        throw new Error(data.message || 'Failed to create customer');
+        if(!response.ok){
+            showNotification('Account registered Failed!', 'warning');
+            throw new Error(data.message || 'Failed to create customer');
 
+        }
+        showNotification('Account registered successfully!', 'success');
+        form.reset();
+        getAllAccounts();
+    }catch (error){
+        console.error('Account Creation error:', error);
+        showNotification(error.message || 'Error registering customer', 'error');
     }
-    showNotification('Account registered successfully!', 'success');
-    form.reset();
-    getAllAccounts();
-}catch (error){
-    console.error('Account Creation error:', error);
-    showNotification(error.message || 'Error registering customer', 'error');
-}
 
 
 
