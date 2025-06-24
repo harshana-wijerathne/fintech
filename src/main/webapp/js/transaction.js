@@ -1,4 +1,4 @@
-function download(){
+function download() {
     generateReport();
     downloadPDF();
 }
@@ -106,15 +106,6 @@ document.getElementById('downloadPdfBtn').addEventListener('click', function () 
     downloadPDF();
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    console.log("great")
-});
-
-function greate() {
-    alert("clicked")
-}
-
-
 function showTransactionDetails(transactionData, isDeposit = true) {
     // Format currency
     const formatCurrency = (amount) => {
@@ -160,20 +151,35 @@ function showTransactionDetails(transactionData, isDeposit = true) {
 
 // Print receipt function
 function printTransactionReceipt() {
-    // In a real app, this would generate a printable receipt
-    console.log('Printing receipt...');
     showNotification('Receipt sent to printer', 'success');
 }
 
 function deposit() {
-    showTransactionDetails({
-        accountNumber: "70042300000138",
-        amount: 3000,
-        balance: 9991000.00,
-        description: "My Salary",
-        referenceNumber: "fff74167-2b3e-4628-9749-1a05e1ed69fc"
-    }, true);
+    // showTransactionDetails({
+    //     accountNumber: "70042300000138",
+    //     amount: 3000,
+    //     balance: 9991000.00,
+    //     description: "My Salary",
+    //     referenceNumber: "fff74167-2b3e-4628-9749-1a05e1ed69fc"
+    // }, true);
 }
+
+document.getElementById("depositForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const form = this;
+    const formData = new FormData(form);
+    console.log(formData)
+
+
+    fetch("/admin/saving-accounts", {method: 'POST', body: JSON.stringify(formData)})
+        .then(result => result.json())
+        .then(result => {
+            showTransactionDetails(result);
+        }).catch(err => {
+        showNotification("Transaction Failed", "error")
+    })
+
+})
 
 function withdraw() {
     showTransactionDetails({
@@ -184,4 +190,114 @@ function withdraw() {
         referenceNumber: "abc74167-2b3e-4628-9749-1a05e1ed69fc"
     }, false);
 }
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    let accounts = [];
+
+    window.getAccountDetails = function() {
+        fetch("/admin/saving-accounts")
+            .then(response => response.json())
+            .then(data => {
+                accounts = data.content;
+                initializeAccountSelector();
+            })
+            .catch(error => {
+                console.error("Error fetching accounts:", error);
+                showNotification('Failed to load accounts', 'error');
+            });
+    }
+
+    function initializeAccountSelector() {
+        const form = document.getElementById('depositForm');
+        const selectElement = document.getElementById('depositAccount');
+        const dropdownToggle = document.querySelector('.account-selector-toggle');
+        const selectedAccountText = document.querySelector('.selected-account-text');
+        const accountListContainer = document.querySelector('.account-list-container');
+        const searchInput = document.querySelector('.account-search');
+
+        // Clear and disable the native select initially
+        selectElement.innerHTML = '<option value="">Select account...</option>';
+        selectElement.required = true;
+
+        function renderAccountList(filter = '') {
+            accountListContainer.innerHTML = '';
+
+            const filteredAccounts = accounts.filter(account =>
+                account.accountNumber.toLowerCase().includes(filter.toLowerCase()) ||
+                (account.customerName && account.customerName.toLowerCase().includes(filter.toLowerCase()))
+            );
+
+            if (filteredAccounts.length === 0) {
+                accountListContainer.innerHTML = `
+                    <div class="text-center py-3 text-muted">
+                        <i class="bi bi-people-slash"></i> No accounts found
+                    </div>
+                `;
+                return;
+            }
+
+            filteredAccounts.forEach(account => {
+                const accountItem = document.createElement('div');
+                accountItem.className = 'account-item';
+                accountItem.innerHTML = `
+                    <div>
+                        <div class="account-number">${account.accountNumber}</div>
+                        <div class="account-name">${account.customerName || 'No name'}</div>
+                    </div>
+                    <div class="account-balance">${formatCurrency(account.balance || 0)}</div>
+                `;
+
+                accountItem.addEventListener('click', function() {
+                    // Update both the hidden select and the display
+                    selectElement.value = account.accountNumber;
+                    selectedAccountText.textContent = `${account.accountNumber} - ${account.customerName || ''}`;
+
+                    // Clear any validation errors
+                    selectElement.classList.remove('is-invalid');
+                    dropdownToggle.classList.remove('is-invalid');
+
+                    // Close the dropdown
+                    const dropdown = bootstrap.Dropdown.getInstance(dropdownToggle);
+                    if (dropdown) dropdown.hide();
+                });
+
+                accountListContainer.appendChild(accountItem);
+            });
+        }
+
+        // Form submission validation
+        form.addEventListener('submit', function(event) {
+            if (!selectElement.value) {
+                event.preventDefault();
+                selectElement.classList.add('is-invalid');
+                dropdownToggle.classList.add('is-invalid');
+                showNotification('Please select an account', 'error');
+            }
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', function() {
+            renderAccountList(this.value);
+        });
+
+        // Initial render
+        renderAccountList();
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(amount);
+    }
+
+    // Initialize on page load
+    getAccountDetails();
+});
+
+
+
+
+
 

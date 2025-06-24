@@ -150,6 +150,74 @@
     animation: fadeIn 0.3s ease-out;
 }
 
+.account-selector {
+    position: relative;
+}
+
+.account-selector-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.account-dropdown-menu {
+    padding: 0;
+}
+
+.account-list-container {
+    border-top: 1px solid #eee;
+}
+
+.account-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.account-item:hover {
+    background-color: #f8f9fa;
+}
+
+.account-item.active {
+    background-color: rgba(42, 75, 124, 0.1);
+}
+
+.account-item .account-number {
+    font-weight: 500;
+}
+
+.account-item .account-name {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.account-item .account-balance {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: #28a745;
+    font-weight: 500;
+}
+
+.card-header[data-bs-toggle="collapse"]:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Rotating chevron icon */
+.collapse-icon {
+    transition: transform 0.2s ease;
+}
+
+.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
+
+/* Smooth collapse animation */
+.collapse {
+    transition: all 0.2s ease;
+}
+
 #reportTable {
     font-size: 0.9rem;
 }

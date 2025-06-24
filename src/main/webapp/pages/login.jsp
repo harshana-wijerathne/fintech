@@ -40,7 +40,7 @@
                 </button>
             </form>
             <div class="demo-note">
-                Demo: admin / password
+                Demo: admin / admin123
             </div>
         </div>
     </div>

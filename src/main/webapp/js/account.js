@@ -1,13 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     getAllCustomersForAccountCreation();
     getAllAccounts()
-    hi();
 
 });
-
-const hi = ()=>{
-    alert("hi")
-}
 
 
 /*====================Handle Form Submissions==================*/

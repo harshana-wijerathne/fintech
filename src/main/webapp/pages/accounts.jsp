@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/account.css">
     <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/notification.css">
-    <script src="${pageContext.request.contextPath}/js/notification.js" defer></script>
+    <link rel="stylesheet" href="../css/notification.css">
+    <script src="../js/notification.js" defer></script>
 
 </head>
 <body>
