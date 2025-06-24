@@ -82,49 +82,27 @@
                       <h3 class="card-title"><i class="bi bi-plus-circle"></i> Deposit Money</h3>
                   </div>
                   <form id="depositForm" class="p-3">
-                      <div onclick="getAccountDetails(0)" class="mb-3">
+                      <div class="mb-3">
                           <label for="depositAccount" class="form-label">Account Number</label>
-                          <div class="account-selector">
-                              <!-- Hidden select element for form submission -->
-                              <select class="form-select d-none" id="depositAccount" name="accountNumber">
-                                  <option value="">Select account...</option>
-                              </select>
-
-                              <!-- Custom dropdown trigger -->
-                              <div class="dropdown">
-                                  <button class="btn btn-outline-secondary dropdown-toggle account-selector-toggle w-100 text-start"
-                                          type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                      <span class="selected-account-text">Select account...</span>
-<%--                                      <i class="bi bi-chevron-down float-end"></i>--%>
-                                  </button>
-
-                                  <!-- Dropdown menu with search -->
-                                  <div class="dropdown-menu account-dropdown-menu p-2 w-100" aria-labelledby="accountDropdown">
-                                      <div class="input-group mb-2">
-                                          <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                          <input type="text" class="form-control account-search" placeholder="Search accounts...">
-                                      </div>
-
-                                      <div class="account-list-container" style="max-height: 200px; overflow-y: auto;">
-                                          <!-- Account items will be dynamically inserted here -->
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
+                          <select class="form-select" id="depositAccount" name="accountNumber" required>
+                              <option value="">Select account...</option>
+                              <option value="SAV001234567">SAV001234567 - John Smith</option>
+                              <option value="SAV001234568">SAV001234568 - Sarah Johnson</option>
+                              <option value="SAV001234569">SAV001234569 - Mike Davis</option>
+                          </select>
                       </div>
-
-                      <!-- Rest of your form remains the same -->
                       <div class="mb-3">
                           <label for="depositAmount" class="form-label">Amount</label>
                           <div class="input-group">
                               <span class="input-group-text">$</span>
-                              <input type="number" class="form-control" id="depositAmount" name="amount" min="100" step="100" required>
+                              <input type="number" class="form-control" id="depositAmount" name="amount" min="1"
+                                     step="0.01" required>
                           </div>
                       </div>
-                      <div class="mb-3">
-                          <label for="depositDate" class="form-label">Date</label>
-                          <input type="date" class="form-control" id="depositDate" name="date" required>
-                      </div>
+<%--                      <div class="mb-3">--%>
+<%--                          <label for="depositDate" class="form-label">Date</label>--%>
+<%--                          <input type="date" class="form-control" id="depositDate" name="date" required>--%>
+<%--                      </div>--%>
                       <div class="d-flex justify-content-end">
                           <button onclick="deposit()" type="submit" class="btn btn-success">
                               <i class="bi bi-plus-circle me-1"></i> Deposit
@@ -139,35 +117,14 @@
                       <h3 class="card-title"><i class="bi bi-dash-circle"></i> Withdraw Money</h3>
                   </div>
                   <form id="withdrawForm" class="p-3">
-                      <div onclick="getAccountDetails(1)" class="mb-3">
-                          <label for="depositAccount" class="form-label">Account Number</label>
-                          <div class="account-selector">
-                              <!-- Hidden select element for form submission -->
-                              <select class="form-select d-none" id="depositAccount" name="accountNumber" required>
-                                  <option value="">Select account...</option>
-                              </select>
-
-                              <!-- Custom dropdown trigger -->
-                              <div class="dropdown">
-                                  <button class="btn btn-outline-secondary dropdown-toggle account-selector-toggle w-100 text-start"
-                                          type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                      <span class="selected-account-text">Select account...</span>
-<%--                                      <i class="bi bi-chevron-down float-end"></i>--%>
-                                  </button>
-
-                                  <!-- Dropdown menu with search -->
-                                  <div class="dropdown-menu account-dropdown-menu p-2 w-100" aria-labelledby="accountDropdown">
-                                      <div class="input-group mb-2">
-                                          <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                          <input type="text" class="form-control account-search" placeholder="Search accounts...">
-                                      </div>
-
-                                      <div class="account-list-container" style="max-height: 200px; overflow-y: auto;">
-                                          <!-- Account items will be dynamically inserted here -->
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
+                      <div class="mb-3">
+                          <label for="withdrawAccount" class="form-label">Account Number</label>
+                          <select class="form-select" id="withdrawAccount" name="accountNumber" required>
+                              <option value="">Select account...</option>
+                              <option value="SAV001234567">SAV001234567 - John Smith</option>
+                              <option value="SAV001234568">SAV001234568 - Sarah Johnson</option>
+                              <option value="SAV001234569">SAV001234569 - Mike Davis</option>
+                          </select>
                       </div>
                       <div class="mb-3">
                           <label for="withdrawAmount" class="form-label">Amount</label>
@@ -177,10 +134,10 @@
                                      step="0.01" required>
                           </div>
                       </div>
-                      <div class="mb-3">
-                          <label for="withdrawDate" class="form-label">Date</label>
-                          <input type="date" class="form-control" id="withdrawDate" name="date" required>
-                      </div>
+<%--                      <div class="mb-3">--%>
+<%--                          <label for="withdrawDate" class="form-label">Date</label>--%>
+<%--                          <input type="date" class="form-control" id="withdrawDate" name="date" required>--%>
+<%--                      </div>--%>
                       <div class="d-flex justify-content-end">
                           <button onclick="withdraw()" type="submit" class="btn btn-danger">
                               <i class="bi bi-dash-circle me-1"></i> Withdraw

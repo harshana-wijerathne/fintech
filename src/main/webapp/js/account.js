@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-/*====================Handle Form Submissions==================*/
+
 document.getElementById("accountForm").addEventListener('submit', async function(e) {
     e.preventDefault();
     const form = this;
@@ -31,14 +31,16 @@ try{
     });
 
     const data = await response.json();
-    console.log(data)
     showAccountDetails(data);
 
     if(!response.ok){
+        showNotification('Account registered Failed!', 'warning');
         throw new Error(data.message || 'Failed to create customer');
+
     }
     showNotification('Account registered successfully!', 'success');
     form.reset();
+    getAllAccounts();
 }catch (error){
     console.error('Account Creation error:', error);
     showNotification(error.message || 'Error registering customer', 'error');
@@ -69,9 +71,7 @@ window.viewAccountDetails = async (id)=>{
     try {
         const response = await fetch("/admin/saving-accounts/"+id);
         const account = await response.json()
-        console.log(account)
         showAccountDetails(account);
-        console.log(response)
     }catch (e){
         showNotification("Error while getting the Account details" , "warning")
     }
@@ -109,7 +109,6 @@ const getAllAccounts = async (page , pageSize)=>{
 
     try {
         const response = await fetch("/admin/saving-accounts?page=" + page + "&pageSize=" + pageSize);
-        console.log(response)
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -117,11 +116,9 @@ const getAllAccounts = async (page , pageSize)=>{
 
         const accountsPage = await response.json();// Parse the JSON response
         accounts = accountsPage.content;
-        console.log(accounts)
         const tableBody = document.getElementById("accountTableBody");
 
         lastPage = accounts.length < pageSize;
-        console.log(accounts)
         if (accounts && accounts.length > 0) {
             let innerHtml = "";
             for (const account of accounts) {
@@ -170,7 +167,7 @@ window.getAllCustomersForAccountCreation = async (page , pageSize) => {
             let innerHtml = "";
             for (const customer of customers) {
                 pageSize = customers.length;
-                innerHtml += `<option value="${customer.customerId}"> ${customer.fullName} + ${customer.nicPassport}</option>`;
+                innerHtml += `<option value="${customer.customerId}"> ${customer.fullName} | ${customer.nicPassport}</option>`;
             }
 
             selectField.innerHTML = innerHtml;
@@ -183,8 +180,6 @@ window.getAllCustomersForAccountCreation = async (page , pageSize) => {
             `<tr><td colspan="5">Error loading customer data</td></tr>`;
     }
 };
-
-
 
 window.debounce = (func, timeout = 300)=> {
     let timer;
@@ -212,7 +207,6 @@ window.searchUser = debounce(async (event) => {
         const accounts = accountsPage
         const tableBody = document.getElementById("accountTableBody");
 
-        console.log(accounts)
         if (accounts && accounts.length > 0) {
             let innerHtml = "";
             for (const account of accounts) {
