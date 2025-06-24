@@ -259,6 +259,7 @@
               </div>
           </div>
 
+          <!-- Transaction Report Card -->
           <div class="modal fade" id="reportPreviewModal" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog modal-lg">
                   <div class="modal-content">
@@ -302,7 +303,7 @@
           <button id="viewReportBtn" class="btn btn-primary me-2">
               <i class="bi bi-eye-fill me-1"></i> View Transaction Report
           </button>
-          <button id="downloadPdfBtn" class="btn btn-success">
+          <button onclick="downloadPDF()" id="downloadPdfBtn" class="btn btn-success">
               <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download as PDF
           </button>
 

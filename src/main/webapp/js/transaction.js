@@ -1,7 +1,7 @@
-function download() {
-    generateReport();
-    downloadPDF();
-}
+// function download() {
+//     generateReport();
+//     downloadPDF();
+// }
 
 const transactions = [
     {date: '2025-06-01', type: 'Deposit', amount: 10000.00, balance: 10000.00},
@@ -17,87 +17,6 @@ function formatCurrency(amount) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     }).format(amount);
-}
-
-function generateReport() {
-    const tbody = document.querySelector('#reportTable tbody');
-    tbody.innerHTML = '';
-
-    transactions.forEach(txn => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${txn.date}</td>
-            <td>${txn.type}</td>
-            <td class="text-end ${txn.type == 'Deposit' ? 'text-success' : 'text-danger'}">
-                ${txn.type == 'Deposit' ? '+' : '-'}${formatCurrency(txn.amount)}
-            </td>
-            <td class="text-end">${formatCurrency(txn.balance)}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-document.getElementById('viewReportBtn').addEventListener('click', function () {
-    generateReport();
-    const modal = new bootstrap.Modal(document.getElementById('reportPreviewModal'));
-    modal.show();
-});
-
-function downloadPDF() {
-    const {jsPDF} = window.jspdf;
-    const doc = new jsPDF();
-
-    // Title
-    doc.setFontSize(16);
-    doc.setTextColor(40, 53, 147);
-    doc.text('Transaction Report - Account #70042300000138', 14, 20);
-
-    // Date
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on: 2025-06-21`, 14, 28);
-
-    // Table
-    const headers = [['Date', 'Transaction Type', 'Amount (LKR)', 'Balance (LKR)']];
-    const data = transactions.map(txn => [
-        txn.date,
-        txn.type,
-        (txn.type == 'Deposit' ? '+' : '-') + formatCurrency(txn.amount),
-        formatCurrency(txn.balance)
-    ]);
-
-    doc.autoTable({
-        head: headers,
-        body: data,
-        startY: 35,
-        styles: {
-            fontSize: 9,
-            cellPadding: 3,
-            valign: 'middle'
-        },
-        columnStyles: {
-            2: {halign: 'right', fontStyle: 'bold'},
-            3: {halign: 'right'}
-        },
-        didDrawCell: (data) => {
-            if (data.column.index === 2 && data.cell.raw[0] === '+') {
-                data.cell.styles.textColor = [40, 167, 69]; // Green for deposits
-            } else if (data.column.index === 2 && data.cell.raw[0] === '-') {
-                data.cell.styles.textColor = [220, 53, 69]; // Red for withdrawals
-            }
-        }
-    });
-
-    // Footer
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
-    }
-
-    doc.save(`Transaction_Report.pdf`);
 }
 
 document.getElementById('downloadPdfBtn').addEventListener('click', function () {
@@ -193,6 +112,7 @@ document.getElementById("depositForm").addEventListener("submit", function (e) {
         .then(result => {
             showTransactionDetails(result);
             showNotification("Deposit successful", "success");
+            loadAndFilterTransactions();
         })
         .catch(err => {
             console.error('Error:', err);
@@ -295,108 +215,106 @@ window.getAllAccountsForFormSelect = async (page , pageSize) => {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("conected")
-    let accounts = [];
+    // let accounts = [];
+    //
+    // window.getAccountDetails = function() {
+    //     fetch("/admin/saving-accounts")
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             accounts = data.content;
+    //             initializeAccountSelector();
+    //         })
+    //         .catch(error => {
+    //             console.error("Error fetching accounts:", error);
+    //             showNotification('Failed to load accounts', 'error');
+    //         });
+    // }
+    //
+    // function initializeAccountSelector() {
+    //     const form = document.getElementById('depositForm');
+    //     const selectElement = document.getElementById('depositAccount');
+    //     const dropdownToggle = document.querySelector('.account-selector-toggle');
+    //     const selectedAccountText = document.querySelector('.selected-account-text');
+    //     const accountListContainer = document.querySelector('.account-list-container');
+    //     const searchInput = document.querySelector('.account-search');
+    //
+    //     // Clear and disable the native select initially
+    //     selectElement.innerHTML = '<option value="">Select account...</option>';
+    //     selectElement.required = true;
+    //
+    //     function renderAccountList(filter = '') {
+    //         accountListContainer.innerHTML = '';
+    //
+    //         const filteredAccounts = accounts.filter(account =>
+    //             account.accountNumber.toLowerCase().includes(filter.toLowerCase()) ||
+    //             (account.customerName && account.customerName.toLowerCase().includes(filter.toLowerCase()))
+    //         );
+    //
+    //         if (filteredAccounts.length === 0) {
+    //             accountListContainer.innerHTML = `
+    //                 <div class="text-center py-3 text-muted">
+    //                     <i class="bi bi-people-slash"></i> No accounts found
+    //                 </div>
+    //             `;
+    //             return;
+    //         }
+    //
+    //         filteredAccounts.forEach(account => {
+    //             const accountItem = document.createElement('div');
+    //             accountItem.className = 'account-item';
+    //             accountItem.innerHTML = `
+    //                 <div>
+    //                     <div class="account-number">${account.accountNumber}</div>
+    //                     <div class="account-name">${account.customerName || 'No name'}</div>
+    //                 </div>
+    //                 <div class="account-balance">${formatCurrency(account.balance || 0)}</div>
+    //             `;
+    //
+    //             accountItem.addEventListener('click', function() {
+    //                 // Update both the hidden select and the display
+    //                 selectElement.value = account.accountNumber;
+    //                 selectedAccountText.textContent = `${account.accountNumber} - ${account.customerName || ''}`;
+    //
+    //                 // Clear any validation errors
+    //                 selectElement.classList.remove('is-invalid');
+    //                 dropdownToggle.classList.remove('is-invalid');
+    //
+    //                 // Close the dropdown
+    //                 const dropdown = bootstrap.Dropdown.getInstance(dropdownToggle);
+    //                 if (dropdown) dropdown.hide();
+    //             });
+    //
+    //             accountListContainer.appendChild(accountItem);
+    //         });
+    //     }
+    //
+    //     // Form submission validation
+    //     form.addEventListener('submit', function(event) {
+    //         if (!selectElement.value) {
+    //             event.preventDefault();
+    //             selectElement.classList.add('is-invalid');
+    //             dropdownToggle.classList.add('is-invalid');
+    //             showNotification('Please select an account', 'error');
+    //         }
+    //     });
+    //
+    //     // Search functionality
+    //     searchInput.addEventListener('input', function() {
+    //         renderAccountList(this.value);
+    //     });
+    //
+    //     // Initial render
+    //     renderAccountList();
+    // }
+    //
+    // function formatCurrency(amount) {
+    //     return new Intl.NumberFormat('en-US', {
+    //         style: 'currency',
+    //         currency: 'USD'
+    //     }).format(amount);
+    // }
 
-    window.getAccountDetails = function() {
-        fetch("/admin/saving-accounts")
-            .then(response => response.json())
-            .then(data => {
-                accounts = data.content;
-                initializeAccountSelector();
-            })
-            .catch(error => {
-                console.error("Error fetching accounts:", error);
-                showNotification('Failed to load accounts', 'error');
-            });
-    }
-
-    function initializeAccountSelector() {
-        const form = document.getElementById('depositForm');
-        const selectElement = document.getElementById('depositAccount');
-        const dropdownToggle = document.querySelector('.account-selector-toggle');
-        const selectedAccountText = document.querySelector('.selected-account-text');
-        const accountListContainer = document.querySelector('.account-list-container');
-        const searchInput = document.querySelector('.account-search');
-
-        // Clear and disable the native select initially
-        selectElement.innerHTML = '<option value="">Select account...</option>';
-        selectElement.required = true;
-
-        function renderAccountList(filter = '') {
-            accountListContainer.innerHTML = '';
-
-            const filteredAccounts = accounts.filter(account =>
-                account.accountNumber.toLowerCase().includes(filter.toLowerCase()) ||
-                (account.customerName && account.customerName.toLowerCase().includes(filter.toLowerCase()))
-            );
-
-            if (filteredAccounts.length === 0) {
-                accountListContainer.innerHTML = `
-                    <div class="text-center py-3 text-muted">
-                        <i class="bi bi-people-slash"></i> No accounts found
-                    </div>
-                `;
-                return;
-            }
-
-            filteredAccounts.forEach(account => {
-                const accountItem = document.createElement('div');
-                accountItem.className = 'account-item';
-                accountItem.innerHTML = `
-                    <div>
-                        <div class="account-number">${account.accountNumber}</div>
-                        <div class="account-name">${account.customerName || 'No name'}</div>
-                    </div>
-                    <div class="account-balance">${formatCurrency(account.balance || 0)}</div>
-                `;
-
-                accountItem.addEventListener('click', function() {
-                    // Update both the hidden select and the display
-                    selectElement.value = account.accountNumber;
-                    selectedAccountText.textContent = `${account.accountNumber} - ${account.customerName || ''}`;
-
-                    // Clear any validation errors
-                    selectElement.classList.remove('is-invalid');
-                    dropdownToggle.classList.remove('is-invalid');
-
-                    // Close the dropdown
-                    const dropdown = bootstrap.Dropdown.getInstance(dropdownToggle);
-                    if (dropdown) dropdown.hide();
-                });
-
-                accountListContainer.appendChild(accountItem);
-            });
-        }
-
-        // Form submission validation
-        form.addEventListener('submit', function(event) {
-            if (!selectElement.value) {
-                event.preventDefault();
-                selectElement.classList.add('is-invalid');
-                dropdownToggle.classList.add('is-invalid');
-                showNotification('Please select an account', 'error');
-            }
-        });
-
-        // Search functionality
-        searchInput.addEventListener('input', function() {
-            renderAccountList(this.value);
-        });
-
-        // Initial render
-        renderAccountList();
-    }
-
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD'
-        }).format(amount);
-    }
-
-    // Initialize on page load
     getAllAccountsForFormSelect();
-    loadTransactionHistory('');
 });
 
 let allAccountTransactions = [];
@@ -463,9 +381,12 @@ async function loadAndFilterTransactions() {
             return;
         }
 
+        this.transactions = filteredTransactions;
         renderTransactions(filteredTransactions);
+        generateReport(filteredTransactions)
 
     } catch (error) {
+        generateReport([])
         console.error('Error:', error);
         transactionHistoryBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error: ${error.message}</td></tr>`;
     }
@@ -518,11 +439,90 @@ document.getElementById('fromDate').addEventListener('change', loadAndFilterTran
 
 document.getElementById('toDate').addEventListener('change', loadAndFilterTransactions);
 
+function generateReport(transactions) {
+    const tbody = document.querySelector('#reportTable tbody');
+    tbody.innerHTML = '';
+    this.transactions = transactions;
+    transactions.forEach(txn => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${txn.createdAt}</td>
+            <td>${txn.transactionType}</td>
+            <td class="text-end ${txn.transactionType.toLowerCase() == 'deposit' ? 'text-success' : 'text-danger'}">
+                ${txn.transactionType.toLowerCase() == 'Deposit' ? '+' : '-'}${formatCurrency(txn.amount)}
+            </td>
+            <td class="text-end">${formatCurrency(txn.balance)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+document.getElementById('viewReportBtn').addEventListener('click', function () {
+    const modal = new bootstrap.Modal(document.getElementById('reportPreviewModal'));
+    modal.show();
+});
+
+function downloadPDF() {
+    console.log(this.transactions)
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(16);
+    doc.setTextColor(40, 53, 147);
+    doc.text('Transaction Report - Account #70042300000138', 14, 20);
+
+    // Date
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on: 2025-06-21`, 14, 28);
+
+    // Table
+    const headers = [['Date', 'Transaction Type', 'Amount (LKR)', 'Balance (LKR)']];
+    const data = transactions.map(txn => [
+        txn.date,
+        txn.type,
+        (txn.type == 'Deposit' ? '+' : '-') + formatCurrency(txn.amount),
+        formatCurrency(txn.balance)
+    ]);
+
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 35,
+        styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            valign: 'middle'
+        },
+        columnStyles: {
+            2: {halign: 'right', fontStyle: 'bold'},
+            3: {halign: 'right'}
+        },
+        didDrawCell: (data) => {
+            if (data.column.index === 2 && data.cell.raw[0] === '+') {
+                data.cell.styles.textColor = [40, 167, 69]; // Green for deposits
+            } else if (data.column.index === 2 && data.cell.raw[0] === '-') {
+                data.cell.styles.textColor = [220, 53, 69]; // Red for withdrawals
+            }
+        }
+    });
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
+    }
+
+    doc.save(`Transaction_Report.pdf`);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadAndFilterTransactions();
 });
-
-
 
 
 
