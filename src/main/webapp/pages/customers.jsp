@@ -160,7 +160,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                                 <input type="text" class="form-control" id="fullName" name="fullName" required>
-                                <div class="invalid-feedback">Please provide a valid name</div>
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
 
@@ -169,7 +169,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
                                 <input type="text" class="form-control" id="nicPassport" name="nicPassport" required>
-                                <div class="invalid-feedback">Please provide a valid ID</div>
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
 
@@ -178,7 +178,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar"></i></span>
                                 <input type="date" class="form-control" id="dob" name="dob" required>
-                                <div class="invalid-feedback">Please select a valid date</div>
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
 
@@ -194,7 +194,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-phone"></i></span>
                                 <input type="tel" class="form-control" id="mobile" name="mobile" required>
-                                <div class="invalid-feedback">Please provide a valid number</div>
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
 
@@ -203,7 +203,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                                 <input type="email" class="form-control" id="email" name="email">
-                                <div class="invalid-feedback">Please provide a valid email</div>
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
 
@@ -212,30 +212,30 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
                                 <input type="text" class="form-control" id="address" name="address" required>
-                                <div class="invalid-feedback">Please provide a valid address</div>
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
 
                         <!-- Additional Info Section -->
-                        <div class="col-12 mt-4">
-                            <h6 class="border-bottom pb-2 mb-3 text-primary">
-                                <i class="bi bi-info-circle-fill me-2"></i>Additional Information
-                            </h6>
-                        </div>
+<%--                        <div class="col-12 mt-4">--%>
+<%--                            <h6 class="border-bottom pb-2 mb-3 text-primary">--%>
+<%--                                <i class="bi bi-info-circle-fill me-2"></i>Additional Information--%>
+<%--                            </h6>--%>
+<%--                        </div>--%>
 
-                        <div class="col-md-6">
-                            <label for="customerType" class="form-label">Customer Type</label>
-                            <select class="form-select" id="customerType" name="customerType">
-                                <option value="INDIVIDUAL">Individual</option>
-                                <option value="BUSINESS">Business</option>
-                                <option value="VIP">VIP</option>
-                            </select>
-                        </div>
+<%--                        <div class="col-md-6">--%>
+<%--                            <label for="customerType" class="form-label">Customer Type</label>--%>
+<%--                            <select class="form-select" id="customerType" name="customerType">--%>
+<%--                                <option value="INDIVIDUAL">Individual</option>--%>
+<%--                                <option value="BUSINESS">Business</option>--%>
+<%--                                <option value="VIP">VIP</option>--%>
+<%--                            </select>--%>
+<%--                        </div>--%>
 
-                        <div class="col-md-6">
-                            <label for="customerSince" class="form-label">Customer Since</label>
-                            <input type="date" class="form-control" id="customerSince" name="customerSince" value="">
-                        </div>
+<%--                        <div class="col-md-6">--%>
+<%--                            <label for="customerSince" class="form-label">Customer Since</label>--%>
+<%--                            <input type="date" class="form-control" id="customerSince" name="customerSince" value="">--%>
+<%--                        </div>--%>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">

@@ -1,6 +1,7 @@
 let lastPage = false;
 
 document.addEventListener('DOMContentLoaded', async function () {
+    console.log("cusotmer js loaded")
     await getAllCustomers();
 
 });
@@ -172,19 +173,19 @@ function showValidationErrors(errors) {
 }
 
 // Demo data function
-function dummyData() {
-    const currentDate = new Date();
-    const dobDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
-
-    document.getElementById('fullName').value = "John Doe";
-    document.getElementById('nicPassport').value = "199025600123";
-    document.getElementById('dob').valueAsDate = dobDate;
-    document.getElementById('address').value = "123 Main Street, Colombo";
-    document.getElementById('mobile').value = "0771234567";
-    document.getElementById('email').value = "john.doe@example.com";
-    document.getElementById('customerType').value = "INDIVIDUAL";
-    document.getElementById('customerSince').valueAsDate = new Date();
-}
+// function dummyData() {
+//     const currentDate = new Date();
+//     const dobDate = new Date(currentDate.getFullYear() - 25, currentDate.getMonth(), currentDate.getDate());
+//
+//     document.getElementById('fullName').value = "John Doe";
+//     document.getElementById('nicPassport').value = "199025600123";
+//     document.getElementById('dob').valueAsDate = dobDate;
+//     document.getElementById('address').value = "123 Main Street, Colombo";
+//     document.getElementById('mobile').value = "0771234567";
+//     document.getElementById('email').value = "john.doe@example.com";
+//     document.getElementById('customerType').value = "INDIVIDUAL";
+//     document.getElementById('customerSince').valueAsDate = new Date();
+// }
 
 function showError(id, message) {
     const input = document.getElementById(id);
@@ -398,7 +399,7 @@ window.dummyData = () =>{
     document.querySelector('input[name="nicPassport"]').value = "199025600123";
     document.querySelector('input[name="dob"]').value = dobString;
     document.querySelector('input[name="address"]').value = "123 Main Street, Colombo";
-    document.querySelector('input[name="mobile"]').value = "+94771234567";
+    document.querySelector('input[name="mobile"]').value = "771234567";
     document.querySelector('input[name="email"]').value = "john.doe@example.com";
 }
 
