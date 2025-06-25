@@ -95,6 +95,7 @@ function showAccountDetails(accountData) {
     document.getElementById('addressDisplay').textContent = accountData.address;
     document.getElementById('emailDisplay').textContent = accountData.email;
     document.getElementById('balanceDisplay').textContent = formattedBalance;
+    document.getElementById('btnPrintStatement').setAttribute("onclick",`printStatement('${accountData.accountNumber}')`)
 
     const modal = new bootstrap.Modal(document.getElementById('accountDetailsModal'));
     modal.show();
@@ -128,12 +129,12 @@ const getAllAccounts = async (page , pageSize)=>{
                             <td>${account.accountNumber}</td>
                             <td>${account.fullName}</td>
                             <td>${account.openingDate}</td>
-                            <td class="currency">${account.balance}</td>
+                            <td >LKR ${account.balance}</td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-primary me-1" onclick="viewAccountDetails('${account.accountNumber}')">
                                     <i class="bi bi-eye"></i> View
                                 </button>
-                                <button class="btn btn-sm btn-outline-secondary">
+                                <button onclick="printStatement('${account.accountNumber}')" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-printer"></i>
                                 </button>
                             </td>
@@ -165,7 +166,7 @@ window.getAllCustomersForFormSelect = async (page , pageSize) => {
         const customers = await response.json(); // Parse the JSON response
         const selectField = document.getElementById("account-select");
         if (customers && customers.length > 0) {
-            let innerHtml = "";
+            let innerHtml = `<option>Select customer..</option>`;
             for (const customer of customers) {
                 pageSize = customers.length;
                 innerHtml += `<option value="${customer.customerId}"> ${customer.fullName} | ${customer.nicPassport}</option>`;
@@ -189,7 +190,6 @@ window.debounce = (func, timeout = 300)=> {
         timer = setTimeout(() => { func.apply(this, args); }, timeout);
     };
 }
-
 window.searchUser = debounce(async (event) => {
     const searchTerm = event.target.value.trim();
 
@@ -239,6 +239,81 @@ window.searchUser = debounce(async (event) => {
     }
 });
 
+
+async function printStatement(accountNumber) {
+    await fetch(`/admin/transactions/${accountNumber}`)
+        .then(r=>r.json())
+        .then(r=>{
+            generatedPDF(r.content)
+        }).catch(e=>{
+            console.log("Error:" , e)
+            showNotification(e,"warning")
+        })
+}
+
+function generatedPDF(transactions) {
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(16);
+    doc.setTextColor(40, 53, 147);
+    doc.text(`Transaction Report - Account No: ${transactions[1].accountNumber}`, 14, 20);
+
+    // Date
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on: 2025-06-21`, 14, 28);
+
+    // Table
+    const headers = [['Date', 'Transaction Type', 'Amount (LKR)', 'Balance (LKR)']];
+    const data = transactions.map(txn => [
+        txn.createdAt,
+        txn.transactionType,
+        (txn.transactionType.toLowerCase() == 'deposit' ? '+' : '-') + formatCurrency(txn.amount),
+        formatCurrency(txn.balance)
+    ]);
+
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 35,
+        styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            valign: 'middle'
+        },
+        columnStyles: {
+            2: {halign: 'right', fontStyle: 'bold'},
+            3: {halign: 'right'}
+        },
+        didDrawCell: (data) => {
+            if (data.column.index === 2 && data.cell.raw[0] === '+') {
+                data.cell.styles.textColor = [40, 167, 69]; // Green for deposits
+            } else if (data.column.index === 2 && data.cell.raw[0] === '-') {
+                data.cell.styles.textColor = [220, 53, 69]; // Red for withdrawals
+            }
+        }
+    });
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
+    }
+
+    doc.save(`Transaction_Report.pdf`);
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-LK', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount);
+}
 
 let currenPage = 1;
 window.nextPage = () =>{

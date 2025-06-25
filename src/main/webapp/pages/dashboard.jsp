@@ -58,13 +58,16 @@
             <i class="bi bi-list"></i>
         </button>
         <div class="user-profile">
-            <img src="https://ui-avatars.com/api/?name=Admin&background=2a4b7c&color=fff" alt="Admin">
-            <div>
-                <div class="fw-bold">Admin</div>
-                <small class="text-muted">Administrator</small>
-            </div>
-            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">
-                <i class="bi bi-box-arrow-right"></i>
+
+                <img src="https://ui-avatars.com/api/?name=Admin&background=2a4b7c&color=fff" alt="Admin">
+                <div>
+                    <div class="fw-bold">Admin</div>
+                    <small class="text-muted">Administrator</small>
+                </div>
+
+
+            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">Logout
+                <i class="bi bi-box-arrow-right ms-3"></i>
             </a>
         </div>
     </div>

@@ -57,8 +57,8 @@
                   <div class="fw-bold">Admin</div>
                   <small class="text-muted">Administrator</small>
               </div>
-              <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">
-                  <i class="bi bi-box-arrow-right"></i>
+              <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">Logout
+                  <i class="bi bi-box-arrow-right ms-3"></i>
               </a>
           </div>
       </div>
@@ -68,9 +68,9 @@
           <!-- Page Header -->
           <div class="d-flex justify-content-between align-items-center mb-4">
               <h2 class="fw-bold"><i class="bi bi-arrow-left-right text-primary me-2"></i> Transaction Management</h2>
-              <button onclick="download()" class="btn btn-primary">
-                  <i class="bi bi-download me-1"></i> Export Statement
-              </button>
+<%--              <button onclick="download()" class="btn btn-primary">--%>
+<%--                  <i class="bi bi-download me-1"></i> Export Statement--%>
+<%--              </button>--%>
           </div>
 
           <!-- Transaction Forms -->
@@ -175,11 +175,6 @@
                       <div class="mb-3">
                           <label for="toDate" class="form-label">To Date</label>
                           <input type="date" class="form-control" id="toDate">
-                      </div>
-                      <div class="mb-3 d-flex align-items-end">
-                          <button class="btn btn-primary" onclick="filterTransactions()">
-                              <i class="bi bi-funnel me-1"></i> Filter
-                          </button>
                       </div>
                   </div>
 

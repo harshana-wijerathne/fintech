@@ -64,8 +64,8 @@
                 <div class="fw-bold">Admin</div>
                 <small class="text-muted">Administrator</small>
             </div>
-            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">
-                <i class="bi bi-box-arrow-right"></i>
+            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">Logout
+                <i class="bi bi-box-arrow-right ms-3"></i>
             </a>
         </div>
     </div>

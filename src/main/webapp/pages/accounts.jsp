@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/account.css">
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/notification.css">
-    <script src="../js/notification.js" defer></script>
+
 
 </head>
 <body>
@@ -63,8 +63,8 @@
                 <div class="fw-bold">Admin</div>
                 <small class="text-muted">Administrator</small>
             </div>
-            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">
-                <i class="bi bi-box-arrow-right"></i>
+            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger ms-3">Logout
+                <i class="bi bi-box-arrow-right ms-3"></i>
             </a>
         </div>
     </div>
@@ -74,23 +74,23 @@
         <!-- Page Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold"><i class="bi bi-credit-card text-primary me-2"></i> Account Management</h2>
-            <div class="d-flex">
-                <div class="dropdown me-2">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="accountTypeDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-funnel me-1"></i> Filter Accounts
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="accountTypeDropdown">
-                        <li><a class="dropdown-item" href="#">All Accounts</a></li>
-                        <li><a class="dropdown-item" href="#">Savings Accounts</a></li>
-                        <li><a class="dropdown-item" href="#">Checking Accounts</a></li>
-                        <li><a class="dropdown-item" href="#">Business Accounts</a></li>
-                    </ul>
-                </div>
-                <button class="btn btn-primary">
-                    <i class="bi bi-download me-1"></i> Export
-                </button>
-            </div>
+<%--            <div class="d-flex">--%>
+<%--                <div class="dropdown me-2">--%>
+<%--                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="accountTypeDropdown"--%>
+<%--                            data-bs-toggle="dropdown" aria-expanded="false">--%>
+<%--                        <i class="bi bi-funnel me-1"></i> Filter Accounts--%>
+<%--                    </button>--%>
+<%--                    <ul class="dropdown-menu" aria-labelledby="accountTypeDropdown">--%>
+<%--                        <li><a class="dropdown-item" href="#">All Accounts</a></li>--%>
+<%--                        <li><a class="dropdown-item" href="#">Savings Accounts</a></li>--%>
+<%--                        <li><a class="dropdown-item" href="#">Checking Accounts</a></li>--%>
+<%--                        <li><a class="dropdown-item" href="#">Business Accounts</a></li>--%>
+<%--                    </ul>--%>
+<%--                </div>--%>
+<%--                <button class="btn btn-primary">--%>
+<%--                    <i class="bi bi-download me-1"></i> Export--%>
+<%--                </button>--%>
+<%--            </div>--%>
         </div>
 
         <!-- New Account Card -->
@@ -126,7 +126,7 @@
                 <div class="mb-3">
                     <label for="initialDeposit" class="form-label">Initial Deposit</label>
                     <div class="input-group">
-                        <span class="input-group-text">$</span>
+                        <span class="input-group-text">LKR</span>
                         <input type="number" class="form-control" id="initialDeposit" name="initialDeposit" min="100"
                                step="1" required>
                     </div>
@@ -364,15 +364,15 @@
                         </div>
 
                         <div class="mt-3">
-                            <button class="btn btn-sm btn-outline-primary me-2">
+                            <button id="btnPrintStatement" class="btn btn-sm btn-outline-primary me-2">
                                 <i class="bi bi-printer me-1"></i> Print Statement
                             </button>
-                            <button class="btn btn-sm btn-outline-warning me-2">
-                                <i class="bi bi-pencil me-1"></i> Edit Details
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash me-1"></i> Close Account
-                            </button>
+<%--                            <button class="btn btn-sm btn-outline-warning me-2">--%>
+<%--                                <i class="bi bi-pencil me-1"></i> Edit Details--%>
+<%--                            </button>--%>
+<%--                            <button class="btn btn-sm btn-outline-danger">--%>
+<%--                                <i class="bi bi-trash me-1"></i> Close Account--%>
+<%--                            </button>--%>
                         </div>
                     </div>
                 </div>
@@ -389,8 +389,15 @@
 
 <!-- Bootstrap Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<%--<script src="../js/account.js" defer></script>--%>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="../js/accounts.js" defer></script>
+<script src="../js/notification.js"></script>
+<!-- jsPDF (UMD build) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- jsPDF AutoTable plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 
 </body>
 </html>

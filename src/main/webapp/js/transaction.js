@@ -1,8 +1,5 @@
-// function download() {
-//     generateReport();
-//     downloadPDF();
-// }
-
+const {jsPDF} = window.jspdf;
+let dpdf = new jsPDF();
 const transactions = [
     {date: '2025-06-01', type: 'Deposit', amount: 10000.00, balance: 10000.00},
     {date: '2025-06-05', type: 'Withdrawal', amount: 2500.00, balance: 7500.00},
@@ -318,6 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 let allAccountTransactions = [];
+
 async function loadAndFilterTransactions() {
     const accountNumber = document.getElementById('historyAccount').value;
     const fromDate = document.getElementById('fromDate').value;
@@ -333,60 +331,53 @@ async function loadAndFilterTransactions() {
     }
 
     try {
-
+        // Show loading
         transactionHistoryBody.innerHTML = '<tr><td colspan="5" class="text-center">Loading transactions...</td></tr>';
 
+        // 1. Get transactions for the selected account
         if (allAccountTransactions.length === 0) {
             const accountResponse = await fetch(`/admin/transactions/${accountNumber}`);
             if (!accountResponse.ok) throw new Error('Failed to load account transactions');
             const accountData = await accountResponse.json();
 
             allAccountTransactions = Array.isArray(accountData) ? accountData :
-                accountData.content ? accountData.content :
-                    accountData.transactions ? accountData.transactions :
-                        [];
+                accountData.content || accountData.transactions || [];
+
+            console.log('Account transactions:', allAccountTransactions);
         }
 
-        // Step 2: Get date-filtered transactions
-        let dateFilteredTransactions = [];
+
+        let filteredTransactions = [...allAccountTransactions];
+
         if (fromDate || toDate) {
-            let dateUrl = '/admin/transactions?';
-            if (fromDate) dateUrl += `fromdate=${fromDate}&`;
-            if (toDate) dateUrl += `todate=${toDate}`;
+            filteredTransactions = filteredTransactions.filter(transaction => {
+                const transDate = transaction.transactionDate || transaction.createdAt;
+                if (!transDate) return false;
 
-            const dateResponse = await fetch(dateUrl);
-            if (!dateResponse.ok) throw new Error('Failed to load date-filtered transactions');
-            const dateData = await dateResponse.json();
+                const transactionDate = new Date(transDate);
+                const from = fromDate ? new Date(fromDate) : null;
+                const to = toDate ? new Date(toDate) : null;
 
-            dateFilteredTransactions = Array.isArray(dateData) ? dateData :
-                dateData.content ? dateData.content :
-                    dateData.transactions ? dateData.transactions :
-                        [];
+                // Check if transaction is within date range
+                return (!from || transactionDate >= from) &&
+                    (!to || transactionDate <= new Date(to.getTime() + 86400000)); // Add 1 day to include toDate
+            });
         }
 
-        let filteredTransactions = allAccountTransactions;
+        console.log('Filtered transactions:', filteredTransactions);
 
-        if (dateFilteredTransactions.length > 0) {
-
-            const dateFilteredIds = new Set(dateFilteredTransactions.map(t => t.id));
-
-            filteredTransactions = allAccountTransactions.filter(t =>
-                dateFilteredIds.has(t.id)
-            );
-        }
-
-        // Display results
+        // 3. Display results
         if (filteredTransactions.length === 0) {
             transactionHistoryBody.innerHTML = '<tr><td colspan="5" class="text-center">No matching transactions found</td></tr>';
             return;
         }
 
-        this.transactions = filteredTransactions;
         renderTransactions(filteredTransactions);
-        generateReport(filteredTransactions)
+        generateReport(filteredTransactions);
+        generatedPDF(filteredTransactions)
 
     } catch (error) {
-        generateReport([])
+        generateReport([]);
         console.error('Error:', error);
         transactionHistoryBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error: ${error.message}</td></tr>`;
     }
@@ -394,6 +385,7 @@ async function loadAndFilterTransactions() {
 
 function renderTransactions(transactions) {
     const transactionHistoryBody = document.getElementById('transactionHistoryBody');
+
     if (!Array.isArray(transactions)) {
         console.error('Transactions is not an array:', transactions);
         transactionHistoryBody.innerHTML = '<tr><td colspan="5" class="text-center">Invalid transaction data</td></tr>';
@@ -403,7 +395,6 @@ function renderTransactions(transactions) {
     let html = '';
 
     transactions.forEach(transaction => {
-        // Ensure transaction has required properties
         if (!transaction || !transaction.transactionType || !transaction.amount) {
             console.warn('Invalid transaction:', transaction);
             return;
@@ -418,7 +409,7 @@ function renderTransactions(transactions) {
 
         html += `
             <tr>
-                <td>${transaction.createdAt ? transaction.createdAt : 'N/A'}</td>
+                <td>${transaction.createdAt || 'N/A'}</td>
                 <td>${transaction.accountNumber || 'N/A'}</td>
                 <td class="${typeClass}">${transaction.transactionType || 'N/A'}</td>
                 <td class="currency">${formattedAmount}</td>
@@ -431,13 +422,16 @@ function renderTransactions(transactions) {
 }
 
 document.getElementById('historyAccount').addEventListener('change', async function() {
+    // Clear cached transactions when account changes
     allAccountTransactions = [];
     await loadAndFilterTransactions();
 });
 
 document.getElementById('fromDate').addEventListener('change', loadAndFilterTransactions);
-
 document.getElementById('toDate').addEventListener('change', loadAndFilterTransactions);
+document.addEventListener('DOMContentLoaded', () => {
+    loadAndFilterTransactions();
+});
 
 function generateReport(transactions) {
     const tbody = document.querySelector('#reportTable tbody');
@@ -462,15 +456,14 @@ document.getElementById('viewReportBtn').addEventListener('click', function () {
     modal.show();
 });
 
-function downloadPDF() {
-    console.log(this.transactions)
+function generatedPDF(transactions) {
     const {jsPDF} = window.jspdf;
     const doc = new jsPDF();
 
     // Title
     doc.setFontSize(16);
     doc.setTextColor(40, 53, 147);
-    doc.text('Transaction Report - Account #70042300000138', 14, 20);
+    doc.text(`Transaction Report - Account No: ${transactions[1].accountNumber}`, 14, 20);
 
     // Date
     doc.setFontSize(10);
@@ -480,9 +473,9 @@ function downloadPDF() {
     // Table
     const headers = [['Date', 'Transaction Type', 'Amount (LKR)', 'Balance (LKR)']];
     const data = transactions.map(txn => [
-        txn.date,
-        txn.type,
-        (txn.type == 'Deposit' ? '+' : '-') + formatCurrency(txn.amount),
+        txn.createdAt,
+        txn.transactionType,
+        (txn.transactionType == 'Deposit' ? '+' : '-') + formatCurrency(txn.amount),
         formatCurrency(txn.balance)
     ]);
 
@@ -517,7 +510,11 @@ function downloadPDF() {
         doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
     }
 
-    doc.save(`Transaction_Report.pdf`);
+    dpdf = doc;
+}
+
+function downloadPDF() {
+    dpdf.save(`Transaction_Report.pdf`);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
