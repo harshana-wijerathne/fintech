@@ -10,10 +10,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/customer.css">
     <link rel="stylesheet" href="../css/main.css">
-
-    <script src="../js/customers.js" type="module" defer></script>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/notification.css">
-    <script src="${pageContext.request.contextPath}/js/notification.js" defer></script>
+
 
 </head>
 <body>
@@ -529,6 +527,8 @@
 
 <!-- Bootstrap Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/customers.js"></script>
+<script src="${pageContext.request.contextPath}/js/notification.js"></script>
 
 </body>
 </html>

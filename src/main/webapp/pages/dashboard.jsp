@@ -78,21 +78,6 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold"><i class="bi bi-speedometer2 text-primary me-2"></i> Dashboard Overview</h2>
             <div class="d-flex">
-                <div class="dropdown me-2">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="timeRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-calendar-week me-1"></i> Last 30 Days
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="timeRangeDropdown">
-                        <li><a class="dropdown-item" href="#">Today</a></li>
-                        <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
-                        <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
-                        <li><a class="dropdown-item" href="#">This Month</a></li>
-                        <li><a class="dropdown-item" href="#">This Year</a></li>
-                    </ul>
-                </div>
-                <button class="btn btn-primary">
-                    <i class="bi bi-download me-1"></i> Export Report
-                </button>
             </div>
         </div>
 
